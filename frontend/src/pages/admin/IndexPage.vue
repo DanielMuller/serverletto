@@ -20,7 +20,8 @@ q-page(padding)
           .q-pa-md
             q-table(:rows="rows" :columns="columns" row-key="participantId" :pagination="{rowsPerPage:50}")
               template(v-slot:body-cell-image="props")
-                q-icon(v-if="props.value" name="image" size="2em" color="primary" @click="imageSrc=props.value;showImage=true")
+                q-td(:props="props")
+                  q-icon.cursor-pointer(v-if="props.value" name="image" size="2em" color="primary" @click="imageSrc=props.value;showImage=true")
   q-dialog(v-model="showImage")
     q-card(style="width: 700px; max-width: 80vw;")
       q-card-section.row.items-center.q-pb-none
