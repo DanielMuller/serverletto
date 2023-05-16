@@ -1,0 +1,35 @@
+Type: 'AWS::CloudFront::Distribution'
+Properties:
+  DistributionConfig:
+    Origins:
+      - DomainName:
+          Fn::Select:
+            - 2
+            - Fn::Split:
+                - '/'
+                - Fn::GetAtt:
+                    - HostingBucket
+                    - WebsiteURL
+        Id: siteS3Bucket
+        CustomOriginConfig:
+          OriginProtocolPolicy: http-only
+    Enabled: 'true'
+    Comment: Bucket
+    DefaultRootObject: index.html
+    HttpVersion: http2
+    IPV6Enabled: true
+    DefaultCacheBehavior:
+      TargetOriginId: siteS3Bucket
+      AllowedMethods:
+        - GET
+        - HEAD
+        - OPTIONS
+      ViewerProtocolPolicy: redirect-to-https
+      CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+      Compress: true
+    CustomErrorResponses:
+      - ErrorCode: 404
+        ResponseCode: 200
+        ResponsePagePath: /index.html
+    ViewerCertificate:
+      CloudFrontDefaultCertificate: 'true'

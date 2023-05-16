@@ -1,0 +1,14 @@
+Type: AWS::Cognito::UserPool
+Properties:
+  UserPoolName: ${self:custom.userPoolName}
+  AdminCreateUserConfig:
+    AllowAdminCreateUserOnly: true
+  Policies:
+    PasswordPolicy:
+      MinimumLength: 8
+  UsernameAttributes:
+    - email
+  Schema:
+    - AttributeDataType: String
+      Name: email
+      Required: false

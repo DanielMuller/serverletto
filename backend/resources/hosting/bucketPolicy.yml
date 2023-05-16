@@ -1,0 +1,15 @@
+Type: 'AWS::S3::BucketPolicy'
+Properties:
+  Bucket:
+    Ref: HostingBucket
+  PolicyDocument:
+    Statement:
+      - Effect: Allow
+        Principal: '*'
+        Action: 's3:GetObject'
+        Resource:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:s3:::'
+              - Ref: HostingBucket
+              - '/*'

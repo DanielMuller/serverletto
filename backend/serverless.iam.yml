@@ -1,0 +1,25 @@
+role:
+  statements:
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:GetItem'
+        - 'dynamodb:PutItem'
+        - 'dynamodb:UpdateItem'
+        - 'dynamodb:Scan'
+        - 'dynamodb:DeleteItem'
+        - 'dynamodb:Query'
+      Resource:
+        - Fn::GetAtt:
+            - DynamodbTable
+            - Arn
+    - Effect: 'Allow'
+      Action:
+        - 's3:PutObject'
+        - 's3:GetObject'
+      Resource:
+        Fn::Join:
+          - '/'
+          - - Fn::GetAtt:
+                - S3Bucket
+                - Arn
+            - '*'

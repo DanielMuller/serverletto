@@ -1,0 +1,26 @@
+{
+  "version": "0",
+  "id": "1d08b74d-8fdc-bc6d-7804-ffc50a62a87e",
+  "detail-type": "Object Created",
+  "source": "aws.s3",
+  "account": "935443220863",
+  "time": "2023-05-16T15:53:32Z",
+  "region": "eu-west-3",
+  "resources": ["arn:aws:s3:::serverletto-participants-dev"],
+  "detail": {
+    "version": "0",
+    "bucket": {
+      "name": "serverletto-participants-dev"
+    },
+    "object": {
+      "key": "original/d16ca380-e484-41ce-b765-28428800f8c6/1c41f485-ab77-4b1c-9dcb-2d1c8f0421ef/photo.jpg",
+      "size": 11671,
+      "etag": "ee68cd0c888c5028264d3b8a11ec656c",
+      "sequencer": "006463A6FCA589A032"
+    },
+    "request-id": "DM21A5GQYVJJ568A",
+    "requester": "935443220863",
+    "source-ip-address": "77.54.171.38",
+    "reason": "PutObject"
+  }
+}

@@ -1,0 +1,6 @@
+Type: AWS::Cognito::UserPoolClient
+Properties:
+  UserPoolId:
+    Ref: CognitoUser
+  ClientName: ${self:custom.userPoolClientName}
+  GenerateSecret: false

@@ -1,0 +1,32 @@
+Type: 'AWS::S3::Bucket'
+DeletionPolicy: Retain
+Properties:
+  BucketName: ${self:custom.bucketName}
+  CorsConfiguration:
+    CorsRules:
+      - AllowedHeaders:
+          - '*'
+        AllowedMethods:
+          - GET
+        AllowedOrigins:
+          - '*'
+        ExposedHeaders:
+          - Date
+        Id: GetObject
+        MaxAge: 3600
+      - AllowedHeaders:
+          - '*'
+        AllowedMethods:
+          - PUT
+          - POST
+        AllowedOrigins:
+          - '*'
+        ExposedHeaders:
+          - x-amz-server-side-encryption
+          - x-amz-request-id
+          - x-amz-id-2
+        Id: PutObject
+        MaxAge: 1800
+  NotificationConfiguration:
+    EventBridgeConfiguration:
+      EventBridgeEnabled: true

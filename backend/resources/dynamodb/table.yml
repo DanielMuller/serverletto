@@ -1,0 +1,22 @@
+Type: AWS::DynamoDB::Table
+Properties:
+  TableName: ${self:custom.tableName}
+  AttributeDefinitions:
+    - AttributeName: participantId
+      AttributeType: S
+  KeySchema:
+    - AttributeName: participantId
+      KeyType: HASH
+  BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  TableName:
+    Description: 'Participants Table Name'
+    Value:
+      Ref: DynamodbTable
+  TableArn:
+    Description: 'Participants Table Name'
+    Value:
+      Fn::GetAtt:
+        - DynamodbTable
+        - Arn

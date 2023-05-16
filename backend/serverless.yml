@@ -1,0 +1,67 @@
+service: serverletto
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: '3.30.1'
+configValidationMode: warn
+
+custom:
+  stage: ${file(config/stages/${self:provider.stage}.yml)}
+  # Add custom variables here. You can re-use variables defined in the stage yml
+  # customStageVar: ${self:custom.stage.customStageVar}
+  esbuild:
+    external:
+      - sharp
+    packager: 'npm'
+    sourcemap: true
+    bundle: true
+    minify: true
+    keepNames: true
+    exclude:
+      - '@aws-sdk'
+  tableName: '${self:service}-participants-${self:provider.stage}'
+  bucketName: '${self:service}-participants-${self:provider.stage}'
+  userPoolClientName: '${self:service}-webapp-${self:provider.stage}'
+  userPoolName: '${self:service}-${self:provider.stage}'
+  identityPoolName: '${self:service}-${self:provider.stage}'
+plugins:
+  - serverless-esbuild
+  - serverless-deployment-bucket
+package:
+  individually: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, self:custom.stage.region}
+  profile: ${self:custom.stage.profile}
+  memorySize: ${self:custom.stage.lambda.memorySize, '128'}
+  timeout: ${self:custom.stage.lambda.timeout, '10'}
+  logRetentionInDays: ${self:custom.stage.lambda.logRetention, 1}
+  iam: ${file(serverless.iam.yml)}
+  httpApi:
+    cors: true
+    authorizers:
+      cognitoJwtAuthorizer:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl:
+          Fn::GetAtt:
+            - CognitoUser
+            - ProviderURL
+        audience:
+          - Ref: CognitoClient
+
+  deploymentBucket:
+    name: com.serverless.${aws:accountId}.${aws:region}.deploys
+    blockPublicAccess: true
+    skipPolicySetup: true
+    serverSideEncryption: AES256
+  environment:
+    NODE_OPTIONS: '--enable-source-maps'
+    TABLE_NAME: ${self:custom.tableName}
+    BUCKET_NAME: ${self:custom.bucketName}
+functions: ${file(helpers/main.js):getFunctions}
+resources:
+  Resources: ${file(helpers/main.js):getResources}
+#  Outputs: ${file(helpers/main.js):getOutputs}
