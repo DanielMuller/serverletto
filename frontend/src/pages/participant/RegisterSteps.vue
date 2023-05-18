@@ -13,21 +13,25 @@ q-page(padding)
       icon="image"
       :done="stepId > 1"
     )
-      q-uploader(
-        :disable="uploadUrl==='' || uploadDisabled"
-        :url="uploadUrl"
-        auto-upload
-        method="PUT"
-        :send-raw="true"
-        style="width:800px;max-width:800px"
-        accept=".jpg, .jpeg, .png"
+      q-file(
+        v-model="fileImage"
+        clearable
+        filled
+        label="Drop your Image here, or tap/click"
+        color="primary"
+        accept=".jpg, .jpeg, .png, image/*"
         @rejected="onRejected"
-        @uploaded="uploaded"
-        @start="uploadDisabled=true"
-        @finish="uploadDisabled=false"
+        style="max-width:400px"
       )
-      q-stepper-navigation
-        q-btn(@click="stepId = 2" color="primary" label="Skip")
+        template(v-slot:prepend)
+          q-icon(name="file_upload")
+
+      q-stepper-navigation.q-gutter-md.q-pb-md
+        q-btn(@click="stepId = 2" color="secondary" label="Skip" icon="not_interested")
+        q-btn(v-if="img()" @click="upload" color="primary" label="Upload" icon="upload")
+
+      q-card
+        cropper.cropper(:src="img()" :stencil-props="{aspectRatio: 3/2}" @change="change" minWidth="1200" minHeigth="800")
 
     q-step(
       :name="2"
@@ -68,10 +72,13 @@ q-page(padding)
 </template>
 
 <script lang="ts" setup>
-import { useQuasar } from 'quasar';
+import 'vue-advanced-cropper/dist/style.css';
+import { QFile, useQuasar } from 'quasar';
+import { Cropper } from 'vue-advanced-cropper';
 import { api } from 'src/boot/axios';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+
 interface StepToId {
   new: number;
   image: number;
@@ -79,18 +86,55 @@ interface StepToId {
   done: number;
 }
 
+interface Coordinates {
+  width: number;
+  height: number;
+  left: number;
+  top: number;
+}
 const stepToId: StepToId = {
   new: 1,
   image: 2,
   profile: 3,
   done: 4,
 };
+
 const profile = ref({ name: '', email: '' });
-const uploadDisabled = ref(false);
 const uploadUrl = ref('');
 const uploadKey = ref('');
 const stepId = ref(0);
 const $q = useQuasar();
+const fileImage = ref<File | null>(null);
+const cropCoordinates = ref<Coordinates>({
+  width: 0,
+  height: 0,
+  left: 0,
+  top: 0,
+});
+function img() {
+  if (fileImage.value !== null) {
+    return URL.createObjectURL(fileImage.value);
+  }
+  return '';
+}
+function change({
+  coordinates,
+  canvas,
+}: {
+  coordinates: Coordinates;
+  canvas: any;
+}) {
+  cropCoordinates.value = coordinates;
+  if (canvas.width < 1200 || canvas.height < 800) {
+    fileImage.value = null;
+    $q.notify({
+      type: 'negative',
+      message: 'Your image is too small. Minimum size 1200x800',
+      position: 'top',
+    });
+  }
+}
+
 function onRejected(rejectedEntries: any) {
   // Notify plugin needs to be installed
   // https://quasar.dev/quasar-plugins/notify#Installation
@@ -100,11 +144,33 @@ function onRejected(rejectedEntries: any) {
     position: 'top',
   });
 }
-function uploaded(info: any) {
-  api
+
+async function upload() {
+  if (!fileImage.value) {
+    return;
+  }
+  var options = {
+    headers: {
+      'Content-Type': fileImage.value.type,
+    },
+  };
+  try {
+    await api.put(uploadUrl.value, fileImage.value, options);
+    uploaded();
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Unable to upload the image. Try again',
+      position: 'top',
+    });
+  }
+}
+
+async function uploaded() {
+  await api
     .put(`/participant/${token}`, {
       step: 'image',
-      image: { key: uploadKey.value },
+      image: { key: uploadKey.value, crop: cropCoordinates.value },
     })
     .then((res) => {
       stepId.value = stepToId['image'];

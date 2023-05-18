@@ -21,7 +21,7 @@ q-page(padding)
             q-table(:rows="rows" :columns="columns" row-key="participantId" :pagination="{rowsPerPage:50}")
               template(v-slot:body-cell-image="props")
                 q-td(:props="props")
-                  q-icon.cursor-pointer(v-if="props.value" name="image" size="2em" color="primary" @click="imageSrc=props.value;showImage=true")
+                  q-icon.cursor-pointer(v-if="props.value" name="image" size="2em" color="primary" @click="imageSrc=buildSrc(props.value);showImage=true")
   q-dialog(v-model="showImage")
     q-card(style="width: 700px; max-width: 80vw;")
       q-card-section.row.items-center.q-pb-none
@@ -87,7 +87,7 @@ const columns = [
     name: 'image',
     required: true,
     label: 'Image',
-    field: 'imageSrc',
+    field: 'watermarkImage',
   },
 ];
 
@@ -95,6 +95,17 @@ const rows = ref([] as any[]);
 const lastEvaluatedKey = ref(undefined);
 const hasMore = ref(true);
 const userUrl = ref('');
+const region='eu-west-3'
+
+function buildSrc(watermarkImage?:{bucket:string;key:string}) {
+  if (!watermarkImage) {
+    return ''
+  }
+  if (!watermarkImage.key) {
+    return ''
+  }
+  return `https://${watermarkImage.bucket}.s3.${region}.amazonaws.com/${watermarkImage.key}`
+}
 
 function copyUrl() {
   if (userUrl.value) {
