@@ -49,7 +49,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     })
     const overlayResponse = await s3Client.send(overlayCommand)
 
-    const sharpImage = await sharp(sourceImage)
+    const sharpImage = await sharp(sourceImage).rotate()
     const overlayImage = await sharp(await overlayResponse?.Body?.transformToByteArray()).resize({
       width: 600,
       height: 400,
