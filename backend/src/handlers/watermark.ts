@@ -53,7 +53,10 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     const height = 735
     const txtWidth = 800
     const txtHeight = 50
-    const txtMargin = 5
+    const txtMarginBottom = 15
+    const txtMarginRight = 30
+    const imgMarginTop = 35
+    const imgMarginLeft = 30
 
     const sharpImage = await sharp(sourceImage).rotate()
     const overlayImage = await sharp(await overlayResponse?.Body?.transformToByteArray()).resize({
@@ -80,7 +83,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       text: {
         text: '<span foreground="white">ServerlessDays Paris, 7th June 2023</span>',
         align: 'right',
-        width: txtHeight,
+        width: txtWidth,
         height: txtHeight,
         font: 'sans-serif',
         rgba: true,
@@ -95,23 +98,23 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       .composite([
         {
           input: logoBg,
-          top: 10,
-          left: 10,
+          top: imgMarginTop,
+          left: imgMarginLeft,
         },
         {
           input: logoFg,
-          top: 10,
-          left: 10,
+          top: imgMarginTop,
+          left: imgMarginLeft,
         },
         {
           input: textBg,
-          top: height - txtHeight - txtMargin,
-          left: width - txtWidth - txtMargin,
+          top: height - txtHeight - txtMarginBottom,
+          left: width - txtWidth - txtMarginRight,
         },
         {
           input: textFg,
-          top: height - txtHeight - txtMargin,
-          left: width - txtWidth - txtMargin,
+          top: height - txtHeight - txtMarginBottom,
+          left: width - txtWidth - txtMarginRight,
         },
       ])
       .jpeg()
