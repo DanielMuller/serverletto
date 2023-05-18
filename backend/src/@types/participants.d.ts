@@ -12,6 +12,7 @@ declare module 'participants' {
       updatedAt: string
       name?: string
       email?: string
+      locale?: 'en' | 'fr'
       image?: {
         bucket: string
         key: string

@@ -1,5 +1,8 @@
 <template lang="pug">
 q-page(padding)
+  .row.justify-end
+    q-btn(flat rounded dense size="md" label="en" :color="locale==='en' ? 'black':'primary'" @click="locale='en'")
+    q-btn(flat rounded dense size="md" label="fr" :color="locale==='fr' ? 'black':'primary'" @click="locale='fr'")
   q-stepper(
     v-model="stepId"
     vertical
@@ -9,7 +12,7 @@ q-page(padding)
   )
     q-step(
       :name="1"
-      title="Upload Your Image"
+      :title="$t('upload_image')"
       icon="image"
       :done="stepId > 1"
     )
@@ -17,7 +20,7 @@ q-page(padding)
         v-model="fileImage"
         clearable
         filled
-        label="Drop your Image here, or tap/click"
+        :label="$t('drop_here')"
         color="primary"
         accept=".jpg, .jpeg, .png, image/*"
         @rejected="onRejected"
@@ -27,41 +30,41 @@ q-page(padding)
           q-icon(name="file_upload")
 
       q-stepper-navigation.q-gutter-md.q-pb-md
-        q-btn(@click="stepId = 2" color="secondary" label="Skip" icon="not_interested")
-        q-btn(v-if="img()" @click="upload" color="primary" label="Upload" icon="upload")
+        q-btn(@click="stepId = 2" color="secondary" :label="$t('skip')" icon="not_interested")
+        q-btn(v-if="img()" @click="upload" color="primary" :label="$t('upload')" icon="upload")
 
       q-card
         cropper.cropper(:src="img()" :stencil-props="{aspectRatio: 34/21}" @change="change" minWidth="1190" minHeigth="735")
 
     q-step(
       :name="2"
-      title="Contact Information"
+      :title="$t('contact_information')"
       icon="person"
       :done="stepId > 2"
     )
       .q-gutter-md(style="max-width:300px")
-        q-input(outlined v-model="profile.name" label="* Name")
-        q-input(outlined v-model="profile.email" label="* E-Mail")
+        .text-body2.text-italic {{ $t('contact_disclaimer') }}
+        q-input(outlined v-model="profile.name" :label="$t('name')")
+        q-input(outlined v-model="profile.email" :label="$t('email')")
         q-stepper-navigation
-          q-btn(@click="saveProfile" color="primary" label="Save" :disabled="!profile.name || !profile.email")
+          q-btn(@click="saveProfile" color="primary" :label="$t('save')" :disabled="!profile.name || !profile.email")
     q-step(
       :name="4"
-      title="Done"
+      :title="$t('done')"
       icon="check"
       :done="stepId > 4"
     )
-      q-banner.bg-positive.text-white(rounded)
-        template(v-slot:avatar)
-          q-icon.q-pr-md(name="check_circle" color="white")
-          h4 Thanks for your participation.
-      q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" label="Back to Home")
+
+      h5 {{ $t('thanks') }}
+      .text-body(v-html="$t('next_steps')")
+      q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" :label="$t('back_home')")
 
   .text-center(v-else-if="stepId<0")
       q-banner.bg-negative.text-white(rounded)
         template(v-slot:avatar)
           q-icon.q-pr-md(name="error" color="white")
-          h4 Invalid Code Provided
-      q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" label="Back to Home")
+          h4 {{ $t('invalid_code') }}
+      q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" :label="$t('back_home')")
 
   .text-center(v-else)
     q-spinner(
@@ -77,6 +80,7 @@ import { Cropper } from 'vue-advanced-cropper';
 import { api } from 'src/boot/axios';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 interface StepToId {
   new: number;
@@ -98,11 +102,13 @@ const stepToId: StepToId = {
   done: 4,
 };
 
+const { locale } = useI18n({ useScope: 'global' });
 const profile = ref({ name: '', email: '' });
 const uploadUrl = ref('');
 const uploadKey = ref('');
 const stepId = ref(0);
 const $q = useQuasar();
+const { t } = useI18n();
 const fileImage = ref<File | null>(null);
 const cropCoordinates = ref<Coordinates>({
   width: 0,
@@ -128,7 +134,7 @@ function change({
     fileImage.value = null;
     $q.notify({
       type: 'negative',
-      message: 'Your image is too small. Minimum size 1190x735',
+      message: t('image_too_small'),
       position: 'top',
     });
   }
@@ -139,7 +145,7 @@ function onRejected(rejectedEntries: any) {
   // https://quasar.dev/quasar-plugins/notify#Installation
   $q.notify({
     type: 'negative',
-    message: `${rejectedEntries.length} file(s) did not pass validation constraints`,
+    message: t('image_rejected'),
     position: 'top',
   });
 }
@@ -159,7 +165,7 @@ async function upload() {
   } catch (e) {
     $q.notify({
       type: 'negative',
-      message: 'Unable to upload the image. Try again',
+      message: t('image_upload_error'),
       position: 'top',
     });
   }
@@ -170,6 +176,7 @@ async function uploaded() {
     .put(`/participant/${token}`, {
       step: 'image',
       image: { key: uploadKey.value, crop: cropCoordinates.value },
+      locale: locale.value,
     })
     .then((res) => {
       stepId.value = stepToId['image'];
@@ -177,7 +184,7 @@ async function uploaded() {
     .catch((e) => {
       $q.notify({
         type: 'negative',
-        message: 'Image upload failed, try again',
+        message: t('image_upload_error'),
         position: 'top',
       });
     });
@@ -188,6 +195,7 @@ function saveProfile() {
       step: 'profile',
       name: profile.value.name,
       email: profile.value.email,
+      locale: locale.value,
     })
     .then((res) => {
       api.put(`/participant/${token}`, {
@@ -198,7 +206,7 @@ function saveProfile() {
     .catch((e) => {
       $q.notify({
         type: 'negative',
-        message: 'Unable to save. Try again',
+        message: t('save_error'),
         position: 'top',
       });
     });

@@ -62,6 +62,11 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
     expressionAttributeValues[':email'] = body.email
     expressionAttributeNames['#email'] = 'email'
   }
+  if (body.locale) {
+    updateExpression.push('#locale = :locale')
+    expressionAttributeValues[':locale'] = body.locale
+    expressionAttributeNames['#locale'] = 'locale'
+  }
   if (body.step === 'image' && body.image?.key) {
     if (body.image?.key) {
       updateExpression.push('#image = :image')

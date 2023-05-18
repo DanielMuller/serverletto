@@ -40,6 +40,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     })
     const participant = await ddbDocClient.send(getCommand)
     const crop = participant.Item?.image.crop
+    const locale = participant.Item?.locale === 'fr' ? 'fr' : 'en'
 
     const sourceImage = await response.Body.transformToByteArray()
 
@@ -67,9 +68,11 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     const logoBg = await overlayImage.clone().negate({ alpha: false }).blur(4).toBuffer()
     const logoFg = await overlayImage.clone().toBuffer()
 
+    const label =
+      locale === 'fr' ? 'ServerlessDays Paris, 7 Juin 2023' : 'ServerlessDays Paris, 7th June 2023'
     const textFg = await sharp({
       text: {
-        text: '<span foreground="black">ServerlessDays Paris, 7th June 2023</span>',
+        text: `<span foreground="black">${label}</span>`,
         align: 'right',
         width: txtWidth,
         height: txtHeight,
@@ -81,7 +84,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       .toBuffer()
     const textBg = await sharp({
       text: {
-        text: '<span foreground="white">ServerlessDays Paris, 7th June 2023</span>',
+        text: `<span foreground="black">${label}</span>`,
         align: 'right',
         width: txtWidth,
         height: txtHeight,

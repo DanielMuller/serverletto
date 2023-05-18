@@ -6,7 +6,7 @@ q-layout(view="hHh lpR fFf")
         img(src="/serverlessguru-logo.svg")
       q-toolbar-title(shrink) Serverletto
       q-space
-      div.gt-xs by ServerlessGuru @ ServerlessDays - Paris - 7th June 2023
+      div.gt-xs {{ $t('tagline') }}
   q-page-container
     router-view
 </template>
