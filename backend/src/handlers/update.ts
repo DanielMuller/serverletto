@@ -68,6 +68,7 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
       expressionAttributeValues[':image'] = {
         bucket: LOCAL_ENV_VARIABLES.bucketName,
         key: body.image?.key,
+        crop: body.image?.crop,
       }
       expressionAttributeNames['#image'] = 'image'
     }

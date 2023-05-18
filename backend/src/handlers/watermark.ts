@@ -1,6 +1,6 @@
 import type { S3ObjectCreatedNotificationEvent } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { Upload } from '@aws-sdk/lib-storage'
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import log from 'lambda-log'
@@ -34,6 +34,13 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
   const response = await s3Client.send(getCommand)
 
   if (response.Body) {
+    const getCommand = new GetCommand({
+      TableName: LOCAL_ENV_VARIABLES.tableName,
+      Key: { participantId },
+    })
+    const participant = await ddbDocClient.send(getCommand)
+    const crop = participant.Item?.image.crop
+
     const sourceImage = await response.Body.transformToByteArray()
 
     const overlayCommand = new GetObjectCommand({
@@ -43,34 +50,57 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     const overlayResponse = await s3Client.send(overlayCommand)
 
     const sharpImage = await sharp(sourceImage)
-    const sharpImageMetadata = await sharpImage.metadata()
-    const overlayImage = await sharp(await overlayResponse?.Body?.transformToByteArray())
-      .resize({
-        width: Math.round(sharpImageMetadata.width / 2),
-        height: Math.round(sharpImageMetadata.height / 2),
-        fit: 'inside',
-      })
-      .toBuffer()
+    const overlayImage = await sharp(await overlayResponse?.Body?.transformToByteArray()).resize({
+      width: 600,
+      height: 400,
+      fit: 'inside',
+    })
+    const logoBg = await overlayImage.clone().negate({ alpha: false }).blur(4).toBuffer()
+    const logoFg = await overlayImage.clone().toBuffer()
 
+    const textFg = await sharp({
+      text: {
+        text: '<span foreground="black">ServerlessDays Paris, 7th June 2023</span>',
+        align: 'right',
+        width: 800,
+        height: 50,
+        font: 'sans-serif',
+        rgba: true,
+      },
+    }).png().toBuffer()
+    const textBg = await sharp({
+      text: {
+        text: '<span foreground="white">ServerlessDays Paris, 7th June 2023</span>',
+        align: 'right',
+        width: 800,
+        height: 50,
+        font: 'sans-serif',
+        rgba: true,
+      },
+    }).blur(3).png().toBuffer()
     const resizeImage = await sharpImage
+      .extract({ left: crop.left, top: crop.top, width: crop.width, height: crop.height })
+      .resize({ width: 1200, height: 800, fit: 'inside' })
       .composite([
         {
-          input: overlayImage,
+          input: logoBg,
           top: 10,
           left: 10,
         },
         {
-          input: {
-            text: {
-              text: '<span foreground="black">ServerlessDays Paris, 7th June 2023</span>',
-              align: 'right',
-              width: sharpImageMetadata.width,
-              height: 100,
-              font: 'serif',
-              rgba: true,
-            },
-          },
-          gravity: 'southeast',
+          input: logoFg,
+          top: 10,
+          left: 10,
+        },
+        {
+          input: textBg,
+          top: 745,
+          left: 395,
+        },
+        {
+          input: textFg,
+          top: 745,
+          left: 395,
         },
       ])
       .jpeg()
@@ -83,6 +113,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
         Key: outputKey,
         Body: resizeImage,
         ContentType: 'image/jpeg',
+        ACL: 'public-read',
       },
     })
     uploadS3.on('httpUploadProgress', (progress) => {

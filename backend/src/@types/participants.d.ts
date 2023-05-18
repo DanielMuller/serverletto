@@ -15,6 +15,12 @@ declare module 'participants' {
       image?: {
         bucket: string
         key: string
+        crop?: {
+          width: number
+          height: number
+          left: number
+          top: number
+        }
       }
       step: Step
     }
