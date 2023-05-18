@@ -1,12 +1,9 @@
 Type: 'AWS::S3::Bucket'
 DeletionPolicy: Retain
 Properties:
-  BucketName: ${self:custom.bucketName}-hosting
-  WebsiteConfiguration:
-    IndexDocument: index.html
-    ErrorDocument: error.html
+  BucketName: ${self:custom.hostingBucketName}
   PublicAccessBlockConfiguration:
-    BlockPublicAcls: false
-    BlockPublicPolicy: false
-    IgnorePublicAcls: false
-    RestrictPublicBuckets: false
+    BlockPublicAcls: true
+    BlockPublicPolicy: true
+    IgnorePublicAcls: true
+    RestrictPublicBuckets: true

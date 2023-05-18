@@ -1,0 +1,6 @@
+Type: AWS::ApiGatewayV2::ApiMapping
+Properties:
+  ApiId:
+    Ref: HttpApi
+  DomainName: api.${self:custom.stage.domain}
+  Stage: '$default'

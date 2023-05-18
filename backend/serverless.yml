@@ -20,6 +20,7 @@ custom:
       - '@aws-sdk'
   tableName: '${self:service}-participants-${self:provider.stage}'
   bucketName: '${self:service}-participants-${self:provider.stage}'
+  hostingBucketName: '${self:service}-hosting-${self:provider.stage}'
   userPoolClientName: '${self:service}-webapp-${self:provider.stage}'
   userPoolName: '${self:service}-${self:provider.stage}'
   identityPoolName: '${self:service}-${self:provider.stage}'
@@ -40,6 +41,7 @@ provider:
   logRetentionInDays: ${self:custom.stage.lambda.logRetention, 1}
   iam: ${file(serverless.iam.yml)}
   httpApi:
+    disableDefaultEndpoint: true
     cors: true
     authorizers:
       cognitoJwtAuthorizer:

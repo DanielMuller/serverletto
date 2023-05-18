@@ -38,6 +38,7 @@ import { ref } from 'vue';
 import QRCode from 'qrcode';
 import { api } from 'src/boot/axios';
 import { copyToClipboard } from 'quasar';
+import awsconfig from '../../aws-exports';
 
 const auth = useAuthenticator();
 const tab = ref('qr');
@@ -95,16 +96,15 @@ const rows = ref([] as any[]);
 const lastEvaluatedKey = ref(undefined);
 const hasMore = ref(true);
 const userUrl = ref('');
-const region='eu-west-3'
 
-function buildSrc(watermarkImage?:{bucket:string;key:string}) {
+function buildSrc(watermarkImage?: { bucket: string; key: string }) {
   if (!watermarkImage) {
-    return ''
+    return '';
   }
   if (!watermarkImage.key) {
-    return ''
+    return '';
   }
-  return `https://${watermarkImage.bucket}.s3.${region}.amazonaws.com/${watermarkImage.key}`
+  return `https://${awsconfig.domain}/${watermarkImage.key}`;
 }
 
 function copyUrl() {

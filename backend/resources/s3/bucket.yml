@@ -3,14 +3,10 @@ DeletionPolicy: Retain
 Properties:
   BucketName: ${self:custom.bucketName}
   PublicAccessBlockConfiguration:
-    BlockPublicAcls: false
+    BlockPublicAcls: true
     BlockPublicPolicy: true
-    IgnorePublicAcls: false
+    IgnorePublicAcls: true
     RestrictPublicBuckets: true
-  OwnershipControls:
-    Rules:
-      - ObjectOwnership: BucketOwnerPreferred
-  AccessControl: AwsExecRead
   CorsConfiguration:
     CorsRules:
       - AllowedHeaders:

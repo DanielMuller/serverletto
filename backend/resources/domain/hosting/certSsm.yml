@@ -1,0 +1,6 @@
+Type: AWS::SSM::Parameter
+Properties:
+  Name:
+    Fn::Sub: 'ACMCertificateArn-${AWS::StackName}'
+  Type: String
+  Value: none

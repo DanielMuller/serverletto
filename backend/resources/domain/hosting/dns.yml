@@ -1,0 +1,21 @@
+Type: AWS::Route53::RecordSetGroup
+DependsOn: HostingDistribution
+Properties:
+  HostedZoneId: ${self:custom.stage.hostedzoneid}
+  RecordSets:
+    - Name: ${self:custom.stage.domain}
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName:
+          Fn::GetAtt:
+            - HostingDistribution
+            - DomainName
+    - Name: ${self:custom.stage.domain}
+      Type: AAAA
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName:
+          Fn::GetAtt:
+            - HostingDistribution
+            - DomainName

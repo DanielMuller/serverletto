@@ -31,7 +31,7 @@ q-page(padding)
         q-btn(v-if="img()" @click="upload" color="primary" label="Upload" icon="upload")
 
       q-card
-        cropper.cropper(:src="img()" :stencil-props="{aspectRatio: 3/2}" @change="change" minWidth="1200" minHeigth="800")
+        cropper.cropper(:src="img()" :stencil-props="{aspectRatio: 34/21}" @change="change" minWidth="1190" minHeigth="735")
 
     q-step(
       :name="2"
@@ -40,11 +40,10 @@ q-page(padding)
       :done="stepId > 2"
     )
       .q-gutter-md(style="max-width:300px")
-        q-input(outlined v-model="profile.name" label="Name")
-        q-input(outlined v-model="profile.email" label="E-Mail" )
+        q-input(outlined v-model="profile.name" label="* Name")
+        q-input(outlined v-model="profile.email" label="* E-Mail")
         q-stepper-navigation
           q-btn(@click="saveProfile" color="primary" label="Save" :disabled="!profile.name || !profile.email")
-
     q-step(
       :name="4"
       title="Done"
@@ -125,11 +124,11 @@ function change({
   canvas: any;
 }) {
   cropCoordinates.value = coordinates;
-  if (canvas.width < 1200 || canvas.height < 800) {
+  if (canvas.width < 1190 || canvas.height < 735) {
     fileImage.value = null;
     $q.notify({
       type: 'negative',
-      message: 'Your image is too small. Minimum size 1200x800',
+      message: 'Your image is too small. Minimum size 1190x735',
       position: 'top',
     });
   }

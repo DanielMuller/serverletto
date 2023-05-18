@@ -1,0 +1,17 @@
+Type: AWS::Route53::RecordSet
+DependsOn:
+  - DomainApiName
+Properties:
+  Name:
+    Ref: DomainApiName
+  Type: A
+  HostedZoneId: ${self:custom.stage.hostedzoneid}
+  AliasTarget:
+    DNSName:
+      Fn::GetAtt:
+        - DomainApiName
+        - RegionalDomainName
+    HostedZoneId:
+      Fn::GetAtt:
+        - DomainApiName
+        - RegionalHostedZoneId

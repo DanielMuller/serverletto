@@ -1,0 +1,8 @@
+Type: AWS::CloudFront::OriginAccessControl
+Properties:
+  OriginAccessControlConfig:
+    Description: S3Buckets
+    Name: ${self:service}-${self:provider.stage}
+    OriginAccessControlOriginType: s3
+    SigningBehavior: always
+    SigningProtocol: sigv4

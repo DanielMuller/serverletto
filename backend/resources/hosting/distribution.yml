@@ -1,25 +1,40 @@
 Type: 'AWS::CloudFront::Distribution'
+DependsOn:
+  - HostingBucket
+  - S3Bucket
+  - DomainHostingCertStack
 Properties:
   DistributionConfig:
     Origins:
       - DomainName:
-          Fn::Select:
-            - 2
-            - Fn::Split:
-                - '/'
-                - Fn::GetAtt:
-                    - HostingBucket
-                    - WebsiteURL
-        Id: siteS3Bucket
-        CustomOriginConfig:
-          OriginProtocolPolicy: http-only
+          Fn::GetAtt:
+            - HostingBucket
+            - DomainName
+        Id: hostingBucket
+        OriginAccessControlId:
+          Fn::GetAtt:
+            - HostingOac
+            - Id
+        S3OriginConfig:
+          OriginAccessIdentity: ''
+      - DomainName:
+          Fn::GetAtt:
+            - S3Bucket
+            - DomainName
+        Id: imageBucket
+        OriginAccessControlId:
+          Fn::GetAtt:
+            - HostingOac
+            - Id
+        S3OriginConfig:
+          OriginAccessIdentity: ''
     Enabled: 'true'
-    Comment: Bucket
+    Comment: ${self:service}-${self:provider.stage}-hosting
     DefaultRootObject: index.html
     HttpVersion: http2
     IPV6Enabled: true
     DefaultCacheBehavior:
-      TargetOriginId: siteS3Bucket
+      TargetOriginId: hostingBucket
       AllowedMethods:
         - GET
         - HEAD
@@ -27,9 +42,29 @@ Properties:
       ViewerProtocolPolicy: redirect-to-https
       CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
       Compress: true
+    CacheBehaviors:
+      - TargetOriginId: imageBucket
+        AllowedMethods:
+          - GET
+          - HEAD
+          - OPTIONS
+        ViewerProtocolPolicy: redirect-to-https
+        CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        Compress: true
+        PathPattern: 'watermark/*'
     CustomErrorResponses:
       - ErrorCode: 404
         ResponseCode: 200
         ResponsePagePath: /index.html
+      - ErrorCode: 403
+        ResponseCode: 200
+        ResponsePagePath: /index.html
+    Aliases:
+      - ${self:custom.stage.domain}
     ViewerCertificate:
-      CloudFrontDefaultCertificate: 'true'
+      AcmCertificateArn:
+        Fn::GetAtt:
+          - DomainHostingCertSsm
+          - Value
+      MinimumProtocolVersion: TLSv1.2_2021
+      SslSupportMethod: sni-only

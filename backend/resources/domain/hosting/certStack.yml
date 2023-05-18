@@ -1,0 +1,78 @@
+Type: AWS::CloudFormation::StackSet
+Properties:
+  Description: Create ACM in us-east-1
+  PermissionModel: SELF_MANAGED
+  StackInstancesGroup:
+    - DeploymentTargets:
+        Accounts:
+          - Ref: 'AWS::AccountId'
+      Regions:
+        - us-east-1
+  StackSetName:
+    Fn::Sub: '${AWS::StackName}-CloudfrontACM'
+  Parameters:
+    - ParameterKey: DomainName
+      ParameterValue: ${self:custom.stage.domain}
+    - ParameterKey: HostedZoneId
+      ParameterValue: ${self:custom.stage.hostedzoneid}
+    - ParameterKey: RoleArn
+      ParameterValue:
+        Fn::GetAtt:
+          - DomainHostingLambdaRole
+          - Arn
+    - ParameterKey: MasterRegion
+      ParameterValue:
+        Ref: AWS::Region
+    - ParameterKey: SSMName
+      ParameterValue:
+        Fn::Sub: ACMCertificateArn-${AWS::StackName}
+  TemplateBody: |
+    AWSTemplateFormatVersion: 2010-09-09
+    Description: Create ACM
+    Parameters:
+      DomainName:
+        Type: String
+      HostedZoneId:
+        Type: String
+      RoleArn:
+        Type: String
+      MasterRegion:
+        Type: String
+      SSMName:
+        Type: String
+    Resources:
+      Certificate:
+        Type: AWS::CertificateManager::Certificate
+        Properties:
+          DomainName:
+            Ref: DomainName
+          DomainValidationOptions:
+            - DomainName: !Ref DomainName
+              HostedZoneId: !Ref HostedZoneId
+          ValidationMethod: DNS
+      reportUp:
+        Type: AWS::Lambda::Function
+        Properties:
+          Handler: index.handler
+          Role: !Ref RoleArn
+          Code:
+            ZipFile: !Sub |
+              import boto3
+              import json
+              import cfnresponse
+              def handler(event, context):
+                print(event)
+                client = boto3.client('ssm', region_name='${MasterRegion}')
+                content = event['ResourceProperties']['Input']
+                client.put_parameter(Name='${SSMName}' , Overwrite=True, Value=content)
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, "CustomResourcePhysicalID")
+          Runtime: python3.7
+      reportValue:
+        Type: Custom::reporter
+        Properties:
+          ServiceToken: !GetAtt reportUp.Arn
+          Input: !Ref Certificate
+    Outputs:
+      AcmCertificateArn:
+        Value: !Ref Certificate
+        Description: The Certificates ARN

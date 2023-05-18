@@ -49,10 +49,16 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     })
     const overlayResponse = await s3Client.send(overlayCommand)
 
+    const width = 1190
+    const height = 735
+    const txtWidth = 800
+    const txtHeight = 50
+    const txtMargin = 5
+
     const sharpImage = await sharp(sourceImage).rotate()
     const overlayImage = await sharp(await overlayResponse?.Body?.transformToByteArray()).resize({
-      width: 600,
-      height: 400,
+      width: Math.round(width / 2),
+      height: Math.round(height / 2),
       fit: 'inside',
     })
     const logoBg = await overlayImage.clone().negate({ alpha: false }).blur(4).toBuffer()
@@ -62,25 +68,30 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       text: {
         text: '<span foreground="black">ServerlessDays Paris, 7th June 2023</span>',
         align: 'right',
-        width: 800,
-        height: 50,
+        width: txtWidth,
+        height: txtHeight,
         font: 'sans-serif',
         rgba: true,
       },
-    }).png().toBuffer()
+    })
+      .png()
+      .toBuffer()
     const textBg = await sharp({
       text: {
         text: '<span foreground="white">ServerlessDays Paris, 7th June 2023</span>',
         align: 'right',
-        width: 800,
-        height: 50,
+        width: txtHeight,
+        height: txtHeight,
         font: 'sans-serif',
         rgba: true,
       },
-    }).blur(3).png().toBuffer()
+    })
+      .blur(3)
+      .png()
+      .toBuffer()
     const resizeImage = await sharpImage
       .extract({ left: crop.left, top: crop.top, width: crop.width, height: crop.height })
-      .resize({ width: 1200, height: 800, fit: 'inside' })
+      .resize({ width, height, fit: 'inside' })
       .composite([
         {
           input: logoBg,
@@ -94,18 +105,24 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
         },
         {
           input: textBg,
-          top: 745,
-          left: 395,
+          top: height - txtHeight - txtMargin,
+          left: width - txtWidth - txtMargin,
         },
         {
           input: textFg,
-          top: 745,
-          left: 395,
+          top: height - txtHeight - txtMargin,
+          left: width - txtWidth - txtMargin,
         },
       ])
       .jpeg()
       .toBuffer()
 
+    log.info('upload', {
+      Bucket: LOCAL_ENV_VARIABLES.bucketName,
+      Key: outputKey,
+      Body: resizeImage,
+      ContentType: 'image/jpeg',
+    })
     const uploadS3 = new Upload({
       client: s3Client,
       params: {
@@ -113,14 +130,12 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
         Key: outputKey,
         Body: resizeImage,
         ContentType: 'image/jpeg',
-        ACL: 'public-read',
       },
     })
     uploadS3.on('httpUploadProgress', (progress) => {
       log.info('progress', { progress })
     })
     await uploadS3.done()
-    log.info('uploaded')
     const updateExpression = ['#watermarkImage = :watermarkImage']
     const expressionAttributeValues: Record<string, string | number | object> = {
       ':watermarkImage': { bucket: LOCAL_ENV_VARIABLES.bucketName, key: outputKey },

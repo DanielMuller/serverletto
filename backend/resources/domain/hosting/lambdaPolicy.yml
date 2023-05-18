@@ -1,0 +1,17 @@
+Type: AWS::IAM::Policy
+Properties:
+  PolicyName: LambdaPolicy
+  Roles:
+    - Ref: DomainHostingLambdaRole
+  PolicyDocument:
+    Version: '2012-10-17'
+    Statement:
+      - Effect: Allow
+        Action:
+          - 'SSM:*'
+        Resource:
+          Fn::Sub: 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ACMCertificateArn-*'
+      - Effect: Allow
+        Action:
+          - 'logs:*'
+        Resource: 'arn:aws:logs:*:*:*'
