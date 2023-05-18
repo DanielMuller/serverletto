@@ -1,6 +1,9 @@
 Type: AWS::ApiGatewayV2::ApiMapping
+DependsOn:
+  - HttpApiStage
 Properties:
   ApiId:
     Ref: HttpApi
-  DomainName: api.${self:custom.stage.domain}
+  DomainName:
+    Ref: DomainApiName
   Stage: '$default'
