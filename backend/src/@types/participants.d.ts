@@ -24,6 +24,10 @@ declare module 'participants' {
         }
       }
       step: Step
+      watermarkImage?: {
+        bucket: string
+        key: string
+      }
     }
   }
 }

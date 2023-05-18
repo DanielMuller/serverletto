@@ -1,0 +1,26 @@
+Type: AWS::DynamoDB::Table
+Properties:
+  TableName: ${self:custom.notificationTableName}
+  AttributeDefinitions:
+    - AttributeName: email
+      AttributeType: S
+    - AttributeName: name
+      AttributeType: S
+  KeySchema:
+    - AttributeName: email
+      KeyType: HASH
+    - AttributeName: name
+      KeyType: RANGE
+  BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  TableName:
+    Description: 'Notification Table Name'
+    Value:
+      Ref: DynamodbTable
+  TableArn:
+    Description: 'Notification Table Name'
+    Value:
+      Fn::GetAtt:
+        - DynamodbTable
+        - Arn

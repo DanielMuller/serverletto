@@ -12,6 +12,9 @@ role:
         - Fn::GetAtt:
             - DynamodbTable
             - Arn
+        - Fn::GetAtt:
+            - DynamodbNotification
+            - Arn
     - Effect: 'Allow'
       Action:
         - 's3:PutObject'
@@ -24,3 +27,8 @@ role:
                 - S3Bucket
                 - Arn
             - '*'
+    - Effect: 'Allow'
+      Action:
+        - ses:SendRawEmail
+      Resource:
+        - '*'

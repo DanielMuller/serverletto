@@ -4,12 +4,15 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-
 import { Upload } from '@aws-sdk/lib-storage'
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import log from 'lambda-log'
+import { notifyAdmins } from '@@controllers/notifyAdmins'
+import { Participants } from 'participants'
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const sharp = require('sharp')
 
 const LOCAL_ENV_VARIABLES = {
   tableName: process.env.TABLE_NAME || '',
+  notificationTableName: process.env.NOTIFICATION_TABLE_NAME || '',
   bucketName: process.env.BUCKET_NAME || '',
 }
 
@@ -38,11 +41,13 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       TableName: LOCAL_ENV_VARIABLES.tableName,
       Key: { participantId },
     })
-    const participant = await ddbDocClient.send(getCommand)
-    const crop = participant.Item?.image.crop
-    const locale = participant.Item?.locale === 'fr' ? 'fr' : 'en'
+    const participantResponse = await ddbDocClient.send(getCommand)
+    const participant = participantResponse.Item as Participants.Item
 
     const sourceImage = await response.Body.transformToByteArray()
+
+    const crop = participant.image ? participant.image.crop : undefined
+    const locale = participant.locale === 'fr' ? 'fr' : 'en'
 
     const overlayCommand = new GetObjectCommand({
       Bucket: LOCAL_ENV_VARIABLES.bucketName,
@@ -96,7 +101,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       .png()
       .toBuffer()
     const resizeImage = await sharpImage
-      .extract({ left: crop.left, top: crop.top, width: crop.width, height: crop.height })
+      .extract(crop)
       .resize({ width, height, fit: 'inside' })
       .composite([
         {
@@ -126,7 +131,6 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     log.info('upload', {
       Bucket: LOCAL_ENV_VARIABLES.bucketName,
       Key: outputKey,
-      Body: resizeImage,
       ContentType: 'image/jpeg',
     })
     const uploadS3 = new Upload({
@@ -142,6 +146,11 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
       log.info('progress', { progress })
     })
     await uploadS3.done()
+    await notifyAdmins({
+      notificationTableName: LOCAL_ENV_VARIABLES.notificationTableName,
+      participant,
+      sourceImage: resizeImage.toString('base64'),
+    })
     const updateExpression = ['#watermarkImage = :watermarkImage']
     const expressionAttributeValues: Record<string, string | number | object> = {
       ':watermarkImage': { bucket: LOCAL_ENV_VARIABLES.bucketName, key: outputKey },
