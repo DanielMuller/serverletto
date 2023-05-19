@@ -1,0 +1,10 @@
+handler: src/handlers/settings/contacts/delete.handler
+name: ${self:service}-${self:provider.stage}-contacts-delete
+memorySize: ${self:custom.stage.lambda.memorySize}
+timeout: ${self:custom.stage.lambda.timeout}
+events:
+  - httpApi:
+      method: DELETE
+      path: /settings/contacts/{contactId}
+      authorizer:
+        name: cognitoJwtAuthorizer

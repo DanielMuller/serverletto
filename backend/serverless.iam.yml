@@ -13,7 +13,7 @@ role:
             - DynamodbTable
             - Arn
         - Fn::GetAtt:
-            - DynamodbNotification
+            - DynamodbSettings
             - Arn
     - Effect: 'Allow'
       Action:

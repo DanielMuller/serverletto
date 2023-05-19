@@ -1,0 +1,10 @@
+handler: src/handlers/settings/contacts/list.handler
+name: ${self:service}-${self:provider.stage}-contacts-list
+memorySize: ${self:custom.stage.lambda.memorySize}
+timeout: ${self:custom.stage.lambda.timeout}
+events:
+  - httpApi:
+      method: GET
+      path: /settings/contacts
+      authorizer:
+        name: cognitoJwtAuthorizer

@@ -12,7 +12,7 @@ const sharp = require('sharp')
 
 const LOCAL_ENV_VARIABLES = {
   tableName: process.env.TABLE_NAME || '',
-  notificationTableName: process.env.NOTIFICATION_TABLE_NAME || '',
+  settingsTableName: process.env.SETTINGS_TABLE_NAME || '',
   bucketName: process.env.BUCKET_NAME || '',
 }
 
@@ -147,7 +147,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     })
     await uploadS3.done()
     await notifyAdmins({
-      notificationTableName: LOCAL_ENV_VARIABLES.notificationTableName,
+      settingsTableName: LOCAL_ENV_VARIABLES.settingsTableName,
       participant,
       sourceImage: resizeImage.toString('base64'),
     })

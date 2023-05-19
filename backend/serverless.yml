@@ -19,7 +19,7 @@ custom:
     exclude:
       - '@aws-sdk'
   tableName: '${self:service}-participants-${self:provider.stage}'
-  notificationTableName: '${self:service}-notification-${self:provider.stage}'
+  settingsTableName: '${self:service}-settings-${self:provider.stage}'
   bucketName: '${self:service}-participants-${self:provider.stage}'
   hostingBucketName: '${self:service}-hosting-${self:provider.stage}'
   userPoolClientName: '${self:service}-webapp-${self:provider.stage}'
@@ -63,7 +63,7 @@ provider:
   environment:
     NODE_OPTIONS: '--enable-source-maps'
     TABLE_NAME: ${self:custom.tableName}
-    NOTIFICATION_TABLE_NAME: ${self:custom.notificationTableName}
+    SETTINGS_TABLE_NAME: ${self:custom.settingsTableName}
     BUCKET_NAME: ${self:custom.bucketName}
 functions: ${file(helpers/main.js):getFunctions}
 resources:

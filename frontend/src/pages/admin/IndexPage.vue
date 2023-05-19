@@ -3,18 +3,40 @@ q-page(padding)
   authenticator(:hide-sign-up="true")
 
   .qa-pa-md(v-if="auth.authStatus==='authenticated'")
-    q-gutter-y-md
+    .q-gutter-y-md
       q-tabs.bg-primary.text-white.shadow-2(v-model="tab")
         q-tab(name="qr" icon="qr_code_2" label="Generate Code")
         q-tab(name="list" icon="list" label="List Participants")
+        q-tab(name="settings" icon="settings" label="Settings")
         q-tab(@click="auth.signOut" icon="logout" label="Sign Out")
-      q-tab-panels(v-model="tab" animated)
+      q-tab-panels(v-model="tab" animated @before-transition="panelChange")
         q-tab-panel(name="qr")
           .column.items-center
             q-btn(label="Generate" @click="newParticipant()" color="positive")
             .qa-pa-md.full-width.text-center(v-if="qrCodeUrl")
               q-img.q-ma-md(:src="qrCodeUrl" style="max-width:400px; max-height:400px")
             q-chip(icon="link" clickable v-if="token" @click="copyUrl" :label="token")
+        q-tab-panel(name="settings")
+          q-card(flat bordered)
+            q-item
+              q-item-section(avatar)
+                q-icon(name="email")
+              q-item-section
+                q-item-label Notifications E-Mails
+            q-separator
+            q-card-section
+              .q-gutter-md.row
+                q-input(outlined filled dense v-model="newName" label="Name")
+                q-input(outlined filled dense v-model="newEmail" label="E-Mail")
+                q-btn(icon="person_add" rounded flat @click="addContact()")
+            transition-group(leave-active-class="animated flipOutX")
+              q-card-section(v-for="(contact,index) in notificationContacts" :key="contact.param")
+                .q-gutter-md.row
+                  q-input(outlined filled dense label="Name" v-model="contact.name")
+                  q-input(outlined filled dense label="E-Mail" v-model="contact.email")
+                  q-btn(icon="save" rounded flat @click="updateContact(index)")
+                  q-btn(icon="delete" rounded flat color="negative" @click="deleteContact(index)")
+
         q-tab-panel(name="list")
           q-btn(v-if="hasMore===true" :label="fetchLabel()" @click="listParticipants()" color="positive")
           .q-pa-md
@@ -40,6 +62,8 @@ import { api } from 'src/boot/axios';
 import { copyToClipboard } from 'quasar';
 import awsconfig from '../../aws-exports';
 
+const newName = ref('');
+const newEmail = ref('');
 const auth = useAuthenticator();
 const tab = ref('qr');
 const qrCodeUrl = ref('');
@@ -93,9 +117,22 @@ const columns = [
 ];
 
 const rows = ref([] as any[]);
+const notificationContacts = ref([] as any[]);
+
 const lastEvaluatedKey = ref(undefined);
 const hasMore = ref(true);
 const userUrl = ref('');
+
+function panelChange(newVal: string | number, oldVal: string | number) {
+  if (newVal === 'list') {
+    rows.value = [];
+    listParticipants();
+  }
+  if (newVal === 'settings') {
+    notificationContacts.value = [];
+    listContacts();
+  }
+}
 
 function buildSrc(watermarkImage?: { bucket: string; key: string }) {
   if (!watermarkImage) {
@@ -161,6 +198,7 @@ function fetchLabel() {
 }
 
 async function listParticipants() {
+  $q.loading.show();
   const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
   const response = await api.get('/participant', {
     params: {
@@ -177,5 +215,105 @@ async function listParticipants() {
     hasMore.value = false;
   }
   rows.value = [...rows.value, ...items];
+  $q.loading.hide();
+}
+async function listContacts() {
+  $q.loading.show();
+  try {
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    const response = await api.get('/settings/contacts', {
+      params: {
+        limit: 50,
+        lastEvaluatedKey: lastEvaluatedKey.value,
+      },
+      headers: { Authorization: `Bearer ${jwtToken}` },
+    });
+    const items = response.data.items;
+    if (response.data.lastEvaluatedKey) {
+      lastEvaluatedKey.value = response.data.lastEvaluatedKey.participantId;
+    } else {
+      lastEvaluatedKey.value = undefined;
+      hasMore.value = false;
+    }
+    notificationContacts.value = [...notificationContacts.value, ...items];
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error loading Settings',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
+}
+async function deleteContact(index: number) {
+  $q.loading.show();
+  try {
+    const contactId = notificationContacts.value[index].param;
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    await api.delete(`/settings/contacts/${contactId}`, {
+      headers: { Authorization: `Bearer ${jwtToken}` },
+    });
+    notificationContacts.value.length > 0 &&
+      notificationContacts.value.splice(notificationContacts.value[index], 1);
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error adding Contact',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
+}
+async function updateContact(index: number) {
+  const contact = notificationContacts.value[index];
+  $q.loading.show();
+  try {
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    const response = await api.put(
+      `/settings/contacts/${contact.param}`,
+      {
+        param: contact.param,
+        name: contact.name,
+        email: contact.email,
+      },
+      {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+      }
+    );
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error adding Contact',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
+}
+async function addContact() {
+  $q.loading.show();
+  try {
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    const response = await api.post(
+      '/settings/contacts',
+      {
+        name: newName.value,
+        email: newEmail.value,
+      },
+      {
+        headers: { Authorization: `Bearer ${jwtToken}` },
+      }
+    );
+    const newContact = response.data;
+    notificationContacts.value.unshift(newContact);
+    newName.value = '';
+    newEmail.value = '';
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error adding Contact',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
 }
 </script>

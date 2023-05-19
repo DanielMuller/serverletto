@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb'
+import { DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import log from 'lambda-log'
 import { buildAndSend } from '@@services/email'
 import { Participants } from 'participants'
@@ -15,15 +15,19 @@ const ddbDocClient = DynamoDBDocumentClient.from(client, { marshallOptions })
 interface NotifyAdmins {
   participant: Participants.Item
   sourceImage: string
-  notificationTableName: string
+  settingsTableName: string
 }
 /**
  * Notify Admins of new Image
  */
 export async function notifyAdmins(params: NotifyAdmins): Promise<void> {
-  const { notificationTableName, participant, sourceImage } = params
-  const command = new ScanCommand({
-    TableName: notificationTableName,
+  const { settingsTableName, participant, sourceImage } = params
+  const command = new QueryCommand({
+    TableName: settingsTableName,
+    KeyConditionExpression: 'category = :category',
+    ExpressionAttributeValues: {
+      ':category': 'NOTIFICATION',
+    },
     Limit: 50,
   })
 

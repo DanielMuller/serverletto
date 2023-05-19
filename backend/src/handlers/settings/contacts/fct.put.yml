@@ -1,0 +1,15 @@
+handler: src/handlers/settings/contacts/put.handler
+name: ${self:service}-${self:provider.stage}-contacts-put
+memorySize: ${self:custom.stage.lambda.memorySize}
+timeout: ${self:custom.stage.lambda.timeout}
+events:
+  - httpApi:
+      method: PUT
+      path: /settings/contacts/{contactId}
+      authorizer:
+        name: cognitoJwtAuthorizer
+  - httpApi:
+      method: POST
+      path: /settings/contacts
+      authorizer:
+        name: cognitoJwtAuthorizer
