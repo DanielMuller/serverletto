@@ -4,7 +4,9 @@ q-layout(view="hHh lpR fFf")
     q-toolbar
       q-avatar.app-logo
         img(src="/serverlessguru-logo.svg")
-      q-toolbar-title(shrink) Serverletto
+      q-toolbar-title(shrink)
+        span Serverletto
+        span.q-pl-sm.font-italic(style="font-size:0.8em;") by ServerlessGuru
       q-space
       div.gt-xs {{ $t('tagline') }}
   q-page-container

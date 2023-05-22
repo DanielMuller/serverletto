@@ -7,15 +7,19 @@ export default {
   skip: 'Ignorer',
   upload: 'Charger',
   image_too_small: 'Votre image est trop petite. Taille minimale: 1190x735',
-  image_upload_error: 'Erreur lors du chargement de l\'image. Essayez encore.',
+  image_upload_error: "Erreur lors du chargement de l'image. Essayez encore.",
   save_error: 'Erreur lors de la sauvegarde. Essayez encore.',
   image_rejected: 'Le format de votre image est invalide',
   contact_information: 'Information de contact',
-  contact_disclaimer: 'Ces informations sont utilisées pour contacter les gagnants',
+  contact_disclaimer:
+    'Ces informations sont utilisées pour contacter les gagnants',
   name: 'Nom',
   email: 'E-Mail',
   save: 'Sauver',
   done: 'Terminé',
   thanks: 'Merci pour votre participation',
-  next_steps: '<ul><li>Revenez au stand lors du tirage au sort.</li><li>Si vous n\'avez pas la possibilité d\'être présent, nous vous contacterons par E-Mail.</li><li>Les prix devront être collectés ajourd\'hui</li></ul>',
-}
+  next_steps:
+    "<ul><li>Revenez au stand lors du tirage au sort.</li><li>Si vous n'avez pas la possibilité d'être présent, nous vous contacterons par E-Mail.</li><li>Les prix devront être collectés ajourd'hui</li></ul>",
+  not_empty: 'Ne peux pas être vide',
+  invalid_email: 'Adresse E-Mail invalide',
+};

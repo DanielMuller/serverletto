@@ -1,8 +1,7 @@
 <template lang="pug">
 q-page(padding)
   .row.justify-end
-    q-btn(flat rounded dense size="md" label="en" :color="locale==='en' ? 'black':'primary'" @click="locale='en'")
-    q-btn(flat rounded dense size="md" label="fr" :color="locale==='fr' ? 'black':'primary'" @click="locale='fr'")
+    q-btn(v-if="availableLanguages.length>1" v-for="lang in availableLanguages" :key="lang" flat square dense size="md" :label="lang" :color="locale===lang ? 'black':'primary'" :disabled="locale===lang" @click="switchLang(lang)")
   q-stepper(
     v-model="stepId"
     vertical
@@ -44,8 +43,8 @@ q-page(padding)
     )
       .q-gutter-md(style="max-width:300px")
         .text-body2.text-italic {{ $t('contact_disclaimer') }}
-        q-input(outlined v-model="profile.name" :label="$t('name')")
-        q-input(outlined v-model="profile.email" :label="$t('email')")
+        q-input(outlined v-model="profile.name" :label="$t('name')" @blur="profile.name = profile.name.trim()" :rules="[val => !!val.trim() || $t('not_empty')]")
+        q-input(outlined v-model="profile.email" :label="$t('email')" @blur="profile.email = profile.email.trim()" :rules="[val => !!val.trim() || $t('not_empty'), isValidEmail]")
         q-stepper-navigation
           q-btn(@click="saveProfile" color="primary" :label="$t('save')" :disabled="!profile.name || !profile.email")
     q-step(
@@ -78,7 +77,7 @@ import 'vue-advanced-cropper/dist/style.css';
 import { QFile, useQuasar } from 'quasar';
 import { Cropper } from 'vue-advanced-cropper';
 import { api } from 'src/boot/axios';
-import { ref } from 'vue';
+import { onBeforeMount, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
@@ -116,6 +115,20 @@ const cropCoordinates = ref<Coordinates>({
   left: 0,
   top: 0,
 });
+const availableLanguages = ref<string[]>([]);
+
+function switchLang(lang: string) {
+  locale.value = lang;
+  $q.localStorage.set('defaultLanguage', lang);
+}
+
+onBeforeMount(() => {
+  availableLanguages.value = $q.localStorage.getItem('languages') || [
+    'en',
+    'fr',
+  ];
+});
+
 function img() {
   if (fileImage.value !== null) {
     return URL.createObjectURL(fileImage.value);
@@ -138,6 +151,12 @@ function change({
       position: 'top',
     });
   }
+}
+
+function isValidEmail(val: string): boolean | string {
+  const emailPattern =
+    /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
+  return emailPattern.test(val) || t('invalid_email');
 }
 
 function onRejected(rejectedEntries: any) {

@@ -1,0 +1,10 @@
+handler: src/handlers/settings/params/put.handler
+name: ${self:service}-${self:provider.stage}-params-put
+memorySize: ${self:custom.stage.lambda.memorySize}
+timeout: ${self:custom.stage.lambda.timeout}
+events:
+  - httpApi:
+      method: PUT
+      path: /settings/params
+      authorizer:
+        name: cognitoJwtAuthorizer

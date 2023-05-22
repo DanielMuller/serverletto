@@ -17,5 +17,8 @@ export default {
   save: 'Save',
   done: 'Done',
   thanks: 'Thank You for your participation.',
-  next_steps: '<ul><li>Come back to the booth for the luck draw.</li><li>If you can\'t be here, we will contact your via E-Mail.</li><li>The prices need to be claimed today.</li></ul>',
-}
+  next_steps:
+    "<ul><li>Come back to the booth for the lucky draw.</li><li>If you can't be here, we will contact your via E-Mail.</li><li>The prices need to be claimed today.</li></ul>",
+  not_empty: 'Cannot be empty',
+  invalid_email: 'Invalid E-Mail address',
+};

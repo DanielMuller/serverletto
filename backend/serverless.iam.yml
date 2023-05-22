@@ -8,6 +8,7 @@ role:
         - 'dynamodb:Scan'
         - 'dynamodb:DeleteItem'
         - 'dynamodb:Query'
+        - 'dynamodb:BatchWriteItem'
       Resource:
         - Fn::GetAtt:
             - DynamodbTable

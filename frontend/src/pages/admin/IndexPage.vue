@@ -16,7 +16,7 @@ q-page(padding)
             .qa-pa-md.full-width.text-center(v-if="qrCodeUrl")
               q-img.q-ma-md(:src="qrCodeUrl" style="max-width:400px; max-height:400px")
             q-chip(icon="link" clickable v-if="token" @click="copyUrl" :label="token")
-        q-tab-panel(name="settings")
+        q-tab-panel(name="settings").q-gutter-md
           q-card(flat bordered)
             q-item
               q-item-section(avatar)
@@ -36,6 +36,28 @@ q-page(padding)
                   q-input(outlined filled dense label="E-Mail" v-model="contact.email")
                   q-btn(icon="save" rounded flat @click="updateContact(index)")
                   q-btn(icon="delete" rounded flat color="negative" @click="deleteContact(index)")
+          q-card(flat bordered)
+            q-item
+              q-item-section(avatar)
+                q-icon(name="festival")
+              q-item-section
+                q-item-label Event
+            q-separator
+            q-card-section
+              .q-gutter-md.column
+                .text-body2 Available Languages
+                q-option-group(inline v-model="languages" :options="getLanguagesOptions()" color="primary" type="checkbox")
+                .text-body2 Default language
+                q-option-group(inline v-model="defaultLanguage" :options="availableLanguages()" color="primary")
+                .text-body2 Name
+                q-input(v-for="l of availableLanguages()" outlined filled :label="`Event Name (${l.value})`" v-model="eventNames[l.value]" :disable="l.disable")
+                  template(v-slot:before)
+                    .text-body2 {{ l.label }}
+                .text-body2 Label on Image
+                q-input(v-for="l of availableLanguages()" outlined filled :label="`Label on Image (${l.value})`" v-model="imageLabels[l.value]" :disable="l.disable")
+                  template(v-slot:before)
+                    .text-body2 {{ l.label }}
+                q-btn(icon='save_alt' color="primary" label="Save" @click="updateParams")
 
         q-tab-panel(name="list")
           q-btn(v-if="hasMore===true" :label="fetchLabel()" @click="listParticipants()" color="positive")
@@ -71,6 +93,41 @@ const token = ref('');
 const showImage = ref(false);
 const imageSrc = ref('');
 const $q = useQuasar();
+const languages = ref(['en', 'fr']);
+const defaultLanguage = ref('en');
+const languagesOptions = [
+  {
+    label: 'English',
+    value: 'en',
+  },
+  {
+    label: 'French',
+    value: 'fr',
+  },
+];
+const eventNames = ref<Record<string, string>>({});
+const imageLabels = ref<Record<string, string>>({});
+function availableLanguages() {
+  return languagesOptions.map((el) => {
+    return {
+      label: el.label,
+      value: el.value,
+      disable: !languages.value.some((value) => {
+        return value === el.value;
+      }),
+    };
+  });
+}
+function getLanguagesOptions() {
+  return languagesOptions.map((el) => {
+    return {
+      label: el.label,
+      value: el.value,
+      disable: el.value === defaultLanguage.value,
+    };
+  });
+}
+
 const columns = [
   {
     name: 'participantId',
@@ -131,6 +188,7 @@ function panelChange(newVal: string | number, oldVal: string | number) {
   if (newVal === 'settings') {
     notificationContacts.value = [];
     listContacts();
+    listSettings();
   }
 }
 
@@ -307,6 +365,72 @@ async function addContact() {
     notificationContacts.value.unshift(newContact);
     newName.value = '';
     newEmail.value = '';
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error adding Contact',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
+}
+async function listSettings() {
+  $q.loading.show();
+  try {
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    const response = await api.get('/settings/params', {
+      params: {
+        limit: 50,
+        lastEvaluatedKey: lastEvaluatedKey.value,
+      },
+      headers: { Authorization: `Bearer ${jwtToken}` },
+    });
+    const items = response.data.items;
+    if (response.data.lastEvaluatedKey) {
+      lastEvaluatedKey.value = response.data.lastEvaluatedKey.participantId;
+    } else {
+      lastEvaluatedKey.value = undefined;
+      hasMore.value = false;
+    }
+    languages.value = items.languages || ['en', 'fr'];
+    defaultLanguage.value = items.defaultLanguage || 'en';
+    eventNames.value = items.eventNames || {
+      en: 'Name in English',
+      fr: 'Nom en français',
+    };
+    imageLabels.value = items.imageLabels || {
+      en: 'Label in English',
+      fr: 'Libellé en français',
+    };
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error loading Settings',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
+}
+async function updateParams() {
+  $q.loading.show();
+  try {
+    const payload: Record<string, string | string[]> = {
+      languages: JSON.parse(JSON.stringify(languages.value)),
+      defaultLanguage: defaultLanguage.value,
+    };
+    for (const [k, v] of Object.entries(eventNames.value)) {
+      const langKey = `eventNames#${k}`;
+      payload[langKey] = v as string;
+    }
+    for (const [k, v] of Object.entries(imageLabels.value)) {
+      const langKey = `imageLabels#${k}`;
+      payload[langKey] = v as string;
+    }
+
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    await api.put('/settings/params', payload, {
+      headers: { Authorization: `Bearer ${jwtToken}` },
+    });
   } catch (e) {
     $q.notify({
       type: 'negative',

@@ -1,6 +1,11 @@
 import type { S3ObjectCreatedNotificationEvent } from 'aws-lambda'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb'
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  QueryCommand,
+  UpdateCommand,
+} from '@aws-sdk/lib-dynamodb'
 import { Upload } from '@aws-sdk/lib-storage'
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import log from 'lambda-log'
@@ -44,6 +49,29 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     const participantResponse = await ddbDocClient.send(getCommand)
     const participant = participantResponse.Item as Participants.Item
 
+    const getSettingsCommand = new QueryCommand({
+      TableName: LOCAL_ENV_VARIABLES.tableName,
+      KeyConditionExpression: 'category = :category and begins_with(param, :param)',
+      ExpressionAttributeValues: {
+        ':category': 'SETTINGS',
+        ':param': 'imageLabels#',
+      },
+    })
+
+    const settingsResponse = await ddbDocClient.send(getSettingsCommand)
+    const labelSettings = settingsResponse.Items as {
+      category: 'PARAMS'
+      param: string
+      value: string
+    }[]
+
+    const labelByLocale: Record<string, string> = {}
+    labelSettings.map((el) => {
+      const lang = el.param.split('#')[1]
+      const label = el.value
+      labelByLocale[lang] = label
+      return undefined
+    })
     const sourceImage = await response.Body.transformToByteArray()
 
     const crop = participant.image ? participant.image.crop : undefined
@@ -73,8 +101,7 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     const logoBg = await overlayImage.clone().negate({ alpha: false }).blur(4).toBuffer()
     const logoFg = await overlayImage.clone().toBuffer()
 
-    const label =
-      locale === 'fr' ? 'ServerlessDays Paris, 7 Juin 2023' : 'ServerlessDays Paris, 7th June 2023'
+    const label = labelByLocale[locale] || labelByLocale.en
     const textFg = await sharp({
       text: {
         text: `<span foreground="black">${label}</span>`,
