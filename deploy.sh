@@ -41,6 +41,9 @@ cd ..
 envsubst < aws-exports.js.template > frontend/src/aws-exports.js
 aws s3 cp src/assets/slsguru.svg s3://${CF_IMAGEBUCKET}/dist/slsguru.svg
 
+if [ -f "covers/${STAGE}.png" ]; then
+    cp "covers/${STAGE}.png" "frontend/public/event.png"
+fi
 cd frontend
 quasar build
 
