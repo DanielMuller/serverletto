@@ -68,4 +68,4 @@ provider:
 functions: ${file(helpers/main.js):getFunctions}
 resources:
   Resources: ${file(helpers/main.js):getResources}
-#  Outputs: ${file(helpers/main.js):getOutputs}
+  Outputs: ${file(helpers/main.js):getOutputs}

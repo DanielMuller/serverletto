@@ -1,0 +1,2 @@
+Description: Region
+Value: ${aws:region}

@@ -19,3 +19,7 @@ Properties:
           Fn::GetAtt:
             - HostingDistribution
             - DomainName
+Outputs:
+  HostingDomain:
+    Description: 'Hosting Domain'
+    Value: ${self:custom.stage.domain}

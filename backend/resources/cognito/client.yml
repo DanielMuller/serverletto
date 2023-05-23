@@ -4,3 +4,8 @@ Properties:
     Ref: CognitoUser
   ClientName: ${self:custom.userPoolClientName}
   GenerateSecret: false
+Outputs:
+  Id:
+    Description: 'Web Client Id'
+    Value:
+      Ref: CognitoClient

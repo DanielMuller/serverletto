@@ -54,15 +54,33 @@ const getResources = async ({ options, resolveVariable }) => {
 }
 
 const getOutputs = async ({ options, resolveVariable }) => {
-  console.log('=== outputs')
-  console.log(options)
-  const stage = await resolveVariable('sls:stage')
-  const region = await resolveVariable('opt:region, self:provider.region, "us-east-1"')
-  const accountId = await resolveVariable('aws:accountId')
-  console.log('===>')
-  console.log({ stage, region, accountId })
+  // const stage = await resolveVariable('sls:stage')
+  // const region = await resolveVariable('opt:region, self:provider.region, "us-east-1"')
+  // const accountId = await resolveVariable('aws:accountId')
 
-  return {}
+  const elements = {}
+  const resFiles = await getAllFiles('./resources', 'yml')
+  for (const file of resFiles) {
+    const fileContent = await fsPromises.readFile(file, 'utf8')
+    const doc = YAML.load(fileContent)
+    if (doc && doc.Outputs) {
+      for (const outputName in doc.Outputs) {
+        const methodName = 'Out' + getMethodName(file) + ucFirst(outputName)
+        elements[methodName] = { ...elements[methodName], ...doc.Outputs[outputName] }
+      }
+    }
+  }
+
+  const outFiles = await getAllFiles('./outputs', 'yml')
+  for (const file of outFiles) {
+    const fileContent = await fsPromises.readFile(file, 'utf8')
+    const doc = YAML.load(fileContent)
+    if (doc) {
+      const methodName = 'Out' + getMethodName(file)
+      elements[methodName] = { ...elements[methodName], ...doc }
+    }
+  }
+  return elements
 }
 
 const getAllFiles = async (startPath, extension) => {

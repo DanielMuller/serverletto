@@ -7,3 +7,8 @@ Properties:
     BlockPublicPolicy: true
     IgnorePublicAcls: true
     RestrictPublicBuckets: true
+Outputs:
+  Name:
+    Description: 'Hosting Bucket'
+    Value:
+      Ref: HostingBucket

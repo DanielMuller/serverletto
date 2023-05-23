@@ -1,0 +1,13 @@
+const awsmobile = {
+  aws_project_region: '${CF_REGION}',
+  aws_cognito_region: '${CF_REGION}',
+  aws_user_pools_id: '${CF_USERPOOLID}',
+  aws_user_pools_web_client_id: '${CF_CLIENTID}',
+  oauth: {},
+  aws_user_files_s3_bucket: '${CF_IMAGEBUCKET}',
+  aws_user_files_s3_bucket_region: '${CF_REGION}',
+  api_endpoint: '${CF_APIDOMAIN}',
+  domain: '${CF_DOMAIN}',
+};
+
+export default awsmobile;

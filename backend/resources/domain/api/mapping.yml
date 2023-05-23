@@ -7,3 +7,8 @@ Properties:
   DomainName:
     Ref: DomainApiName
   Stage: '$default'
+Outputs:
+  Domain:
+    Description: 'API Domain'
+    Value:
+      Ref: DomainApiName

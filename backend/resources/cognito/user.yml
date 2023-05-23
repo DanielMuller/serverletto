@@ -12,3 +12,8 @@ Properties:
     - AttributeDataType: String
       Name: email
       Required: false
+Outputs:
+  Id:
+    Description: 'User Pool ID'
+    Value:
+      Ref: CognitoUser

@@ -35,3 +35,8 @@ Properties:
   NotificationConfiguration:
     EventBridgeConfiguration:
       EventBridgeEnabled: true
+Outputs:
+  Name:
+    Description: 'Images Bucket'
+    Value:
+      Ref: S3Bucket
