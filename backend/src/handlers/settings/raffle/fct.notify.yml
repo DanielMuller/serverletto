@@ -1,0 +1,10 @@
+handler: src/handlers/settings/raffle/notify.handler
+name: ${self:service}-${self:provider.stage}-raffle-notify
+memorySize: ${self:custom.stage.lambda.memorySize}
+timeout: ${self:custom.stage.lambda.timeout}
+events:
+  - httpApi:
+      method: GET
+      path: /settings/raffle/notify
+      authorizer:
+        name: cognitoJwtAuthorizer
