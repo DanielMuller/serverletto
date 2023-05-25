@@ -1,0 +1,10 @@
+handler: src/handlers/settings/raffle/draw.handler
+name: ${self:service}-${self:provider.stage}-raffle-draw
+memorySize: 4096
+timeout: 29
+events:
+  - httpApi:
+      method: GET
+      path: /settings/raffle/draw
+      authorizer:
+        name: cognitoJwtAuthorizer

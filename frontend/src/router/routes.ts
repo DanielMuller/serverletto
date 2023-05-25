@@ -51,6 +51,11 @@ const routes: RouteRecordRaw[] = [
         path: '',
         component: () => import('pages/admin/IndexPage.vue'),
       },
+      {
+        name: 'Raffle',
+        path: 'raffle',
+        component: () => import('pages/admin/RafflePage.vue'),
+      },
     ],
   },
 

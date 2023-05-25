@@ -8,11 +8,12 @@ q-page(padding)
         q-tab(name="qr" icon="qr_code_2" label="Generate Code" :disable="appClosed")
         q-tab(name="list" icon="list" label="List Participants")
         q-tab(name="settings" icon="settings" label="Settings")
+        q-route-tab(name="Raffle" icon="emoji_events" :to="{name:'Raffle'}" label="Raffle")
         q-tab(@click="auth.signOut" icon="logout" label="Sign Out")
       q-tab-panels(v-model="tab" animated @before-transition="panelChange")
         q-tab-panel(name="qr")
           .column.items-center
-            q-btn(label="Generate" @click="newParticipant()" color="positive")
+            q-btn(label="Generate" @click="newParticipant()" color="positive" :disable="appClosed")
             .qa-pa-md.full-width.text-center(v-if="qrCodeUrl")
               q-img.q-ma-md(:src="qrCodeUrl" style="max-width:400px; max-height:400px")
             q-chip(icon="link" clickable v-if="token" @click="copyUrl" :label="token")
@@ -67,6 +68,8 @@ q-page(padding)
                 q-input(v-for="l of availableLanguages()" outlined filled :label="`Label on Image (${l.value})`" v-model="imageLabels[l.value]" :disable="l.disable")
                   template(v-slot:before)
                     .text-body2 {{ l.label }}
+                .text-body2 Amount Prices
+                q-input(v-model="amountPrices" outlined filled type="number" style="max-width: 100px" dense)
                 q-btn(icon='save_alt' color="primary" label="Save" @click="updateParams")
 
         q-tab-panel(name="list")
@@ -93,6 +96,7 @@ import QRCode from 'qrcode';
 import { api } from 'src/boot/axios';
 import { copyToClipboard } from 'quasar';
 import awsconfig from '../../aws-exports';
+import { onMounted } from 'vue';
 
 const appClosed = ref(false);
 const newName = ref('');
@@ -118,6 +122,7 @@ const languagesOptions = [
 ];
 const eventNames = ref<Record<string, string>>({});
 const imageLabels = ref<Record<string, string>>({});
+const amountPrices = ref(1);
 function availableLanguages() {
   return languagesOptions.map((el) => {
     return {
@@ -198,8 +203,8 @@ function panelChange(newVal: string | number, oldVal: string | number) {
   }
   if (newVal === 'settings') {
     notificationContacts.value = [];
-    listContacts();
     listSettings();
+    listContacts();
   }
 }
 
@@ -385,8 +390,8 @@ async function addContact() {
   }
   $q.loading.hide();
 }
-async function listSettings() {
-  $q.loading.show();
+async function listSettings(silent = false) {
+  if (!silent) $q.loading.show();
   try {
     const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
     const response = await api.get('/settings/params', {
@@ -414,21 +419,25 @@ async function listSettings() {
       fr: 'Libellé en français',
     };
     appClosed.value = items.appClosed || false;
+    amountPrices.value = items.amountPrices || 1;
   } catch (e) {
-    $q.notify({
-      type: 'negative',
-      message: 'Error loading Settings',
-      position: 'center',
-    });
+    if (!silent) {
+      $q.notify({
+        type: 'negative',
+        message: 'Error loading Settings',
+        position: 'center',
+      });
+    }
   }
-  $q.loading.hide();
+  if (!silent) $q.loading.hide();
 }
 async function updateParams() {
   $q.loading.show();
   try {
-    const payload: Record<string, string | string[]> = {
+    const payload: Record<string, string | string[] | number> = {
       languages: JSON.parse(JSON.stringify(languages.value)),
       defaultLanguage: defaultLanguage.value,
+      amountPrices: amountPrices.value,
     };
     for (const [k, v] of Object.entries(eventNames.value)) {
       const langKey = `eventNames#${k}`;
@@ -472,4 +481,9 @@ async function updateStatus() {
   }
   $q.loading.hide();
 }
+onMounted(() => {
+  setTimeout(() => {
+    listSettings(true);
+  }, 1000);
+});
 </script>
