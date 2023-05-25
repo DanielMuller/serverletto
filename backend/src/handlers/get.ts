@@ -5,6 +5,7 @@ import log from 'lambda-log'
 
 const LOCAL_ENV_VARIABLES = {
   tableName: process.env.TABLE_NAME,
+  settingsTableName: process.env.SETTINGS_TABLE_NAME,
   bucketName: process.env.BUCKET_NAME,
 }
 
@@ -45,6 +46,18 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
     }
   }
 
+  const settingsCommand = new GetCommand({
+    TableName: LOCAL_ENV_VARIABLES.settingsTableName,
+    Key: {
+      category: 'PARAMS',
+      param: 'appClosed',
+    },
+  })
+  const appRes = await ddbDocClient.send(settingsCommand)
+  if (!appRes.Item) {
+    res.Item.value = false
+  }
+  res.Item.appClosed = !!appRes.Item?.value
   return {
     statusCode: 200,
     body: JSON.stringify(res.Item),

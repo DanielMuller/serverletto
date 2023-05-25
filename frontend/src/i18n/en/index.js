@@ -21,4 +21,5 @@ export default {
     "<ul><li>Come back to the booth for the lucky draw.</li><li>If you can't be here, we will contact your via E-Mail.</li><li>The prices need to be claimed today.</li></ul>",
   not_empty: 'Cannot be empty',
   invalid_email: 'Invalid E-Mail address',
+  app_closed: "Sorry, we don't accept any new participation",
 };

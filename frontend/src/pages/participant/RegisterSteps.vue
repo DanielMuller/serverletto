@@ -7,7 +7,7 @@ q-page(padding)
     vertical
     color="primary"
     animated
-    v-if="stepId>0"
+    v-if="stepId>0 && !appClosed"
   )
     q-step(
       :name="1"
@@ -58,6 +58,12 @@ q-page(padding)
       .text-body(v-html="$t('next_steps')")
       q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" :label="$t('back_home')")
 
+  .text-center(v-else-if="appClosed")
+      q-banner.bg-primary.text-white(rounded)
+        template(v-slot:avatar)
+          q-icon.q-pr-md(name="sentiment_dissatisfied" color="white")
+          h4 {{ $t('app_closed') }}
+      q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" :label="$t('back_home')")
   .text-center(v-else-if="stepId<0")
       q-banner.bg-negative.text-white(rounded)
         template(v-slot:avatar)
@@ -116,6 +122,7 @@ const cropCoordinates = ref<Coordinates>({
   top: 0,
 });
 const availableLanguages = ref<string[]>([]);
+const appClosed = ref(true);
 
 function switchLang(lang: string) {
   locale.value = lang;
@@ -236,6 +243,7 @@ const token = route.params.token;
 api
   .get(`/participant/${token}`)
   .then((res) => {
+    appClosed.value = res.data.appClosed || false;
     const step: keyof StepToId = res.data.step || 'new';
     if (!step) {
       stepId.value = 1;

@@ -22,4 +22,5 @@ export default {
     "<ul><li>Revenez au stand lors du tirage au sort.</li><li>Si vous n'avez pas la possibilité d'être présent, nous vous contacterons par E-Mail.</li><li>Les prix devront être collectés ajourd'hui</li></ul>",
   not_empty: 'Ne peux pas être vide',
   invalid_email: 'Adresse E-Mail invalide',
+  app_closed: "Désolé, nous n'acceptons plus de nouvelles participations",
 };

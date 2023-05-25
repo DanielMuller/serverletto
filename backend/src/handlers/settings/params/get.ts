@@ -63,6 +63,7 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
     languages: getLanguages(response.Items),
     eventNames,
     imageLabels,
+    appClosed: getAppClosed(response.Items),
   }
 
   const result = {
@@ -75,6 +76,20 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
   }
 }
 
+/**
+ * Get App closed
+ */
+function getAppClosed(items: Record<string, string | string[]>[] | undefined): boolean {
+  const fallback = false
+  if (!items) {
+    return fallback
+  }
+  try {
+    return !!items.filter((el) => el.param === 'appClosed')[0].value || fallback
+  } catch {
+    return fallback
+  }
+}
 /**
  * Get default languages
  */

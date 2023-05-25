@@ -5,7 +5,7 @@ q-page(padding)
   .qa-pa-md(v-if="auth.authStatus==='authenticated'")
     .q-gutter-y-md
       q-tabs.bg-primary.text-white.shadow-2(v-model="tab")
-        q-tab(name="qr" icon="qr_code_2" label="Generate Code")
+        q-tab(name="qr" icon="qr_code_2" label="Generate Code" :disable="appClosed")
         q-tab(name="list" icon="list" label="List Participants")
         q-tab(name="settings" icon="settings" label="Settings")
         q-tab(@click="auth.signOut" icon="logout" label="Sign Out")
@@ -17,6 +17,16 @@ q-page(padding)
               q-img.q-ma-md(:src="qrCodeUrl" style="max-width:400px; max-height:400px")
             q-chip(icon="link" clickable v-if="token" @click="copyUrl" :label="token")
         q-tab-panel(name="settings").q-gutter-md
+          q-card(flat bordered)
+            q-item
+              q-item-section(avatar)
+                q-icon(name="lock")
+              q-item-section
+                q-item-label Application Status
+            q-separator
+            q-card-section
+              .q-gutter-md.row
+                q-toggle(@click="updateStatus()" v-model="appClosed" :color="appClosed ? 'negative': 'positive'" checked-icon="lock" unchecked-icon="lock_open" :label="appClosed ? 'Application closed to new partiticpants' : 'Application is running'" size="lg" keep-color)
           q-card(flat bordered)
             q-item
               q-item-section(avatar)
@@ -84,6 +94,7 @@ import { api } from 'src/boot/axios';
 import { copyToClipboard } from 'quasar';
 import awsconfig from '../../aws-exports';
 
+const appClosed = ref(false);
 const newName = ref('');
 const newEmail = ref('');
 const auth = useAuthenticator();
@@ -402,6 +413,7 @@ async function listSettings() {
       en: 'Label in English',
       fr: 'Libellé en français',
     };
+    appClosed.value = items.appClosed || false;
   } catch (e) {
     $q.notify({
       type: 'negative',
@@ -435,6 +447,26 @@ async function updateParams() {
     $q.notify({
       type: 'negative',
       message: 'Error adding Contact',
+      position: 'center',
+    });
+  }
+  $q.loading.hide();
+}
+async function updateStatus() {
+  $q.loading.show();
+  try {
+    const payload: Record<string, boolean> = {
+      appClosed: appClosed.value,
+    };
+
+    const jwtToken = auth.user.signInUserSession.accessToken.jwtToken;
+    await api.put('/settings/params', payload, {
+      headers: { Authorization: `Bearer ${jwtToken}` },
+    });
+  } catch (e) {
+    $q.notify({
+      type: 'negative',
+      message: 'Error changing Status',
       position: 'center',
     });
   }
