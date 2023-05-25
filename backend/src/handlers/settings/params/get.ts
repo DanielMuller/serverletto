@@ -64,6 +64,7 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
     eventNames,
     imageLabels,
     appClosed: getAppClosed(response.Items),
+    amountPrices: getAmountPrices(response.Items),
   }
 
   const result = {
@@ -90,6 +91,26 @@ function getAppClosed(items: Record<string, string | string[]>[] | undefined): b
     return fallback
   }
 }
+
+/**
+ * Get Amount Prices
+ */
+function getAmountPrices(items: Record<string, string | string[]>[] | undefined): number {
+  const fallback = 1
+  if (!items) {
+    return fallback
+  }
+  try {
+    const value = items.filter((el) => el.param === 'amountPrices')[0].value
+    if (Array.isArray(value)) {
+      return 1
+    }
+    return parseInt(value) || fallback
+  } catch {
+    return fallback
+  }
+}
+
 /**
  * Get default languages
  */
