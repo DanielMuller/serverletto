@@ -50,10 +50,14 @@ const main = async (event: S3ObjectCreatedNotificationEvent): Promise<void> => {
     const participant = participantResponse.Item as Participants.Item
 
     const getSettingsCommand = new QueryCommand({
-      TableName: LOCAL_ENV_VARIABLES.tableName,
-      KeyConditionExpression: 'category = :category and begins_with(param, :param)',
+      TableName: LOCAL_ENV_VARIABLES.settingsTableName,
+      KeyConditionExpression: '#category = :category and begins_with(#param, :param)',
+      ExpressionAttributeNames: {
+        '#category': 'category',
+        '#param': 'param',
+      },
       ExpressionAttributeValues: {
-        ':category': 'SETTINGS',
+        ':category': 'PARAMS',
         ':param': 'imageLabels#',
       },
     })

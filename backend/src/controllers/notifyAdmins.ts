@@ -39,7 +39,7 @@ export async function notifyAdmins(params: NotifyAdmins): Promise<void> {
   const recipients = response.Items.map((recipient) => {
     return { name: recipient.name, addr: recipient.email }
   })
-  if (!participant.watermarkImage) {
+  if (!sourceImage) {
     log.info('Watermark Image not found', { participant })
     return
   }

@@ -66,30 +66,10 @@ export async function buildAndSend(params: BuildAndSend): Promise<boolean> {
  */
 export async function notify(params: Notify): Promise<boolean> {
   const { participant } = params
-  // const msg = createMimeMessage()
-  // msg.setSender({ name: fromName, addr: fromAddr })
-  // msg.setTo(`${participant.name} <${participant.email}>`)
-  // const subject = participant.locale ==='fr'? 'Vous avez gagné':'You have won'
-  // msg.setSubject(`[Serverletto] ${subject}`)
-  // msg.addMessage({
-  //   contentType: 'text/plain',
-  //   data: `A new image was create on Serverletto:
-
-  // Id: ${participant.participantId}
-  // Participant name: ${participant.name}
-  // CreatedAt: ${participant.createdAt}
-  // Language: ${participant.locale || ''}
-  // `,
-  // })
-  // msg.addAttachment({
-  //   filename: `${participant.participantId}.jpg`,
-  //   contentType: 'image/jpg',
-  //   data: sourceImage,
-  // })
   const localMessage: Record<string, string> = {}
-  localMessage.fr = `Vous avez participé à Serverletto au Stand de ServerlessGuru et vous avez été tiré au sort.
+  localMessage.fr = `Tu as participé à Serverletto au Stand de ServerlessGuru et tu as été tiré au sort.
 
-Venez prendre possession de votre prix au stand de ServerlessGuru avant la fin de la manifestion.
+Viens prendre possession de ton prix au stand de ServerlessGuru avant la fin de la manifestion.
 
 Meilleures Salutations,
 
@@ -103,7 +83,7 @@ Best Regards,
 
 The ServerlessGuru Team
 `
-  const subject = participant.locale === 'fr' ? 'Vous avez gagné' : 'You have won'
+  const subject = participant.locale === 'fr' ? 'Tu as été tiré au sort' : 'You have been drawn'
   const message = participant.locale === 'fr' ? localMessage.fr : localMessage.en
 
   const sesParams = {

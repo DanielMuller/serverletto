@@ -22,7 +22,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client, { marshallOptions })
 interface Param {
   category?: 'PARAMS'
   param?: string
-  value: string | string[]
+  value: string | string[] | boolean
 }
 
 const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResult> => {
@@ -36,16 +36,20 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
       }),
     }
   }
-  const payload: Record<string, string | string[]> = event.isBase64Encoded
+  const payload: Record<string, string | string[] | boolean> = event.isBase64Encoded
     ? JSON.parse(Buffer.from(event.body, 'base64').toString('utf-8'))
     : JSON.parse(event.body)
 
   const items: Param[] = []
+  let resetWinners = false
   for (const [k, v] of Object.entries(payload)) {
     const item: Param = {
       category: 'PARAMS',
       param: k,
       value: v,
+    }
+    if (k === 'appClosed' && v === false) {
+      resetWinners = true
     }
     items.push(item)
   }
@@ -58,6 +62,16 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
       },
     }
   })
+  if (resetWinners) {
+    requestItems[LOCAL_ENV_VARIABLES.settingsTableName].push({
+      DeleteRequest: {
+        Key: {
+          category: 'RAFFLE',
+          param: 'winners',
+        },
+      },
+    })
+  }
   const commandWrite: BatchWriteCommandInput = {
     RequestItems: requestItems,
   }

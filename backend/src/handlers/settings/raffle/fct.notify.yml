@@ -4,7 +4,7 @@ memorySize: ${self:custom.stage.lambda.memorySize}
 timeout: ${self:custom.stage.lambda.timeout}
 events:
   - httpApi:
-      method: GET
+      method: POST
       path: /settings/raffle/notify
       authorizer:
         name: cognitoJwtAuthorizer
