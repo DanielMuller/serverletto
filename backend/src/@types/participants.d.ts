@@ -13,6 +13,10 @@ declare module 'participants' {
       name?: string
       email?: string
       locale?: 'en' | 'fr'
+      twitter_consent?: boolean
+      twitter?: string
+      company?: string
+      title?: string
       image?: {
         bucket: string
         key: string

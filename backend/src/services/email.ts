@@ -35,7 +35,9 @@ export async function buildAndSend(params: BuildAndSend): Promise<boolean> {
     data: `A new image was create on Serverletto:
   
   Id: ${participant.participantId}
-  Participant name: ${participant.name}
+  Participant name: ${participant.name || ''}
+  Twitter Consent:${!!participant.twitter_consent || ''}
+  Twitter: @${participant.twitter || ''}
   CreatedAt: ${participant.createdAt}
   Language: ${participant.locale || ''}
   `,

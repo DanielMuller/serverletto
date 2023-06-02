@@ -44,7 +44,7 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
     }
   }
   const updateExpression = ['#updatedAt = :updatedAt', '#step = :step']
-  const expressionAttributeValues: Record<string, string | number | object> = {
+  const expressionAttributeValues: Record<string, string | number | object | boolean> = {
     ':updatedAt': new Date().toISOString(),
     ':step': body.step,
   }
@@ -66,6 +66,24 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
     updateExpression.push('#locale = :locale')
     expressionAttributeValues[':locale'] = body.locale
     expressionAttributeNames['#locale'] = 'locale'
+  }
+  if (body.twitter) {
+    updateExpression.push('#twitter = :twitter')
+    expressionAttributeValues[':twitter'] = body.twitter
+    expressionAttributeNames['#twitter'] = 'twitter'
+    updateExpression.push('#twitter_consent = :twitter_consent')
+    expressionAttributeValues[':twitter_consent'] = !!body.twitter_consent
+    expressionAttributeNames['#twitter_consent'] = 'twitter_consent'
+  }
+  if (body.company) {
+    updateExpression.push('#company = :company')
+    expressionAttributeValues[':company'] = body.company
+    expressionAttributeNames['#company'] = 'company'
+  }
+  if (body.title) {
+    updateExpression.push('#title = :title')
+    expressionAttributeValues[':title'] = body.title
+    expressionAttributeNames['#title'] = 'title'
   }
   if (body.step === 'image' && body.image?.key) {
     if (body.image?.key) {

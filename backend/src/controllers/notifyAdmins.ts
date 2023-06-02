@@ -14,7 +14,7 @@ const ddbDocClient = DynamoDBDocumentClient.from(client, { marshallOptions })
 
 interface NotifyAdmins {
   participant: Participants.Item
-  sourceImage: string
+  sourceImage?: string
   settingsTableName: string
 }
 /**

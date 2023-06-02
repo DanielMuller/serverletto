@@ -30,6 +30,7 @@ export default async ({ app }) => {
     globalInjection: true,
     messages: wantedLanguages,
     legacy: false,
+    warnHtmlInMessage: false,
   });
 
   // Tell app to use the I18n instance

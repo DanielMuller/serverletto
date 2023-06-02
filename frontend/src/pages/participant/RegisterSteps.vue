@@ -43,8 +43,13 @@ q-page(padding)
     )
       .q-gutter-md(style="max-width:300px")
         .text-body2.text-italic {{ $t('contact_disclaimer') }}
-        q-input(outlined v-model="profile.name" :label="$t('name')" @blur="profile.name = profile.name.trim()" :rules="[val => !!val.trim() || $t('not_empty')]")
-        q-input(outlined v-model="profile.email" :label="$t('email')" @blur="profile.email = profile.email.trim()" :rules="[val => !!val.trim() || $t('not_empty'), isValidEmail]")
+        q-input(outlined v-model="profile.name" :label="`* ${$t('name')}`" @blur="profile.name = profile.name.trim()" :rules="[val => !!val.trim() || $t('not_empty')]")
+        q-input(outlined v-model="profile.email" :label="`* ${$t('email')}`" @blur="profile.email = profile.email.trim()" :rules="[val => !!val.trim() || $t('not_empty'), isValidEmail]")
+        q-input(outlined v-model="profile.company" :label="$t('company')" @blur="profile.company = profile.company.trim()")
+        q-input(outlined v-model="profile.title" :label="$t('title')" @blur="profile.title = profile.title.trim()")
+        q-checkbox(outlined v-model="profile.twitter_consent" :label="$t('twitter_consent')")
+        q-input(outlined v-model="profile.twitter" :label="$t('twitter_handle')" @blur="profile.twitter = profile.twitter.trim().replace(/^@/,'')")
+          template(v-slot:prepend) @
         q-stepper-navigation
           q-btn(@click="saveProfile" color="primary" :label="$t('save')" :disabled="!profile.name || !profile.email")
     q-step(
@@ -58,7 +63,7 @@ q-page(padding)
       .text-body(v-html="$t('next_steps')")
       q-btn.q-ma-md(:to="{'name':'Home'}" icon="home" color="primary" :label="$t('back_home')")
 
-  .text-center(v-else-if="appClosed")
+  .text-center(v-else-if="appClosed && !loading")
       q-banner.bg-primary.text-white(rounded)
         template(v-slot:avatar)
           q-icon.q-pr-md(name="sentiment_dissatisfied" color="white")
@@ -108,7 +113,14 @@ const stepToId: StepToId = {
 };
 
 const { locale } = useI18n({ useScope: 'global' });
-const profile = ref({ name: '', email: '' });
+const profile = ref({
+  name: '',
+  email: '',
+  company: '',
+  title: '',
+  twitter: '',
+  twitter_consent: true,
+});
 const uploadUrl = ref('');
 const uploadKey = ref('');
 const stepId = ref(0);
@@ -123,6 +135,7 @@ const cropCoordinates = ref<Coordinates>({
 });
 const availableLanguages = ref<string[]>([]);
 const appClosed = ref(true);
+const loading = ref(true);
 
 function switchLang(lang: string) {
   locale.value = lang;
@@ -221,7 +234,11 @@ function saveProfile() {
       step: 'profile',
       name: profile.value.name,
       email: profile.value.email,
+      company: profile.value.company,
+      title: profile.value.title,
       locale: locale.value,
+      twitter: profile.value.twitter,
+      twitter_consent: profile.value.twitter_consent,
     })
     .then((res) => {
       api.put(`/participant/${token}`, {
@@ -244,6 +261,7 @@ api
   .get(`/participant/${token}`)
   .then((res) => {
     appClosed.value = res.data.appClosed || false;
+    loading.value = false;
     const step: keyof StepToId = res.data.step || 'new';
     if (!step) {
       stepId.value = 1;

@@ -92,16 +92,19 @@ const main = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResul
 
   const count = scanResults.length
   const amountToDraw = Math.min(count, amount)
+  log.info('amounts', { amount, count, amountToDraw })
   const winners: Participants.Item[] = []
   const winnerIds: number[] = []
   while (winnerIds.length < amountToDraw) {
-    const winnerId = Math.floor(Math.random() * (count + 1))
+    const winnerId = Math.floor(Math.random() * count)
+    log.info('winners', { winnerId, winnerIds })
     if (!winnerIds.includes(winnerId)) {
       winnerIds.push(winnerId)
       winners.push(scanResults[winnerId])
     }
   }
 
+  log.info('winners', { winnerIds })
   const putCommand = new PutCommand({
     TableName: LOCAL_ENV_VARIABLES.settingsTableName,
     Item: {

@@ -187,6 +187,12 @@ const columns = [
     label: 'Image',
     field: 'watermarkImage',
   },
+  {
+    name: 'twitter',
+    required: true,
+    label: 'Twitter',
+    field: (row: any) => (row.twitter_consent ? `@${row.twitter}` : ''),
+  },
 ];
 
 const rows = ref([] as any[]);
