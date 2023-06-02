@@ -3,6 +3,9 @@ Properties:
   UserPoolName: ${self:custom.userPoolName}
   AdminCreateUserConfig:
     AllowAdminCreateUserOnly: true
+    InviteMessageTemplate:
+      EmailSubject: 'Your Serverletto temporary password'
+      EmailMessage: 'Your username is {username} and temporary password is {####}. Go to https://${self:custom.stage.domain}/admin/ to change it.'
   Policies:
     PasswordPolicy:
       MinimumLength: 8
