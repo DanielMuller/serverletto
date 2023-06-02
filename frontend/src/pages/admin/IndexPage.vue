@@ -14,8 +14,8 @@ q-page(padding)
         q-tab-panel(name="qr")
           .column.items-center
             q-btn(label="Generate" @click="newParticipant()" color="positive" :disable="appClosed")
-            .qa-pa-md.full-width.text-center(v-if="qrCodeUrl")
-              q-img.q-ma-md(:src="qrCodeUrl" style="max-width:400px; max-height:400px")
+            .full-width.text-center(v-if="qrCodeUrl")
+              q-img.q-my-md(:src="qrCodeUrl" style="max-width:400px; max-height:400px")
             q-chip(icon="link" clickable v-if="token" @click="copyUrl" :label="token")
         q-tab-panel(name="settings").q-gutter-md
           q-card(flat bordered)
