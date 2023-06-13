@@ -8,7 +8,7 @@ Properties:
     Statement:
       - Effect: Allow
         Action:
-          - 'SSM:*'
+          - 'ssm:*'
         Resource:
           Fn::Sub: 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ACMCertificateArn-*'
       - Effect: Allow
